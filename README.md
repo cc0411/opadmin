@@ -86,5 +86,5 @@ http://localhost:5555/tasks web后台界面可以查看任务执行状态
 
 
 请大家给个stars，谢谢大家的关注
-![screenshots](./snapshot/ali.JPG)
-![screenshots](./snapshot/wxchat.JPG)
+![screenshots](./snapshot/ali.png)
+![screenshots](./snapshot/wxchat.png)
