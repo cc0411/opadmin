@@ -1,0 +1,18 @@
+{%  include 'layout.html' %}
+
+{% block custom_js %}
+ <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                toastr.options = {
+                    closeButton: true,
+                    progressBar: true,
+                    showMethod: 'slideDown',
+                    timeOut: 4000
+                };
+                toastr.success('欢迎  {{ request.user.name }} 使用 OPADMIN运维管理平台');
+
+            }, 1300);})
+    </script>
+
+{%  endblock %}

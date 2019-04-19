@@ -1,0 +1,20 @@
+0000000000000000000000000000000000000000 fa236bec8f08e5a0da030cc2b21228b5d13abacc cc <admin@jcwit.com> 1551272536 +0800	clone: from https://gitee.com/jcwit/opadmin
+fa236bec8f08e5a0da030cc2b21228b5d13abacc 4c663b49dd85381752501491ef0103be57647142 cc <admin@jcwit.com> 1551273675 +0800	pull: Fast-forward
+4c663b49dd85381752501491ef0103be57647142 c830cedb0ff56b6862f8f09ec522d2129b53b17f cc <admin@jcwit.com> 1551363125 +0800	pull: Fast-forward
+c830cedb0ff56b6862f8f09ec522d2129b53b17f d1821fdf9a94abebcbf0ee6c6b2634f2e7579734 cc <admin@jcwit.com> 1551368549 +0800	commit: add rbac not fixed
+d1821fdf9a94abebcbf0ee6c6b2634f2e7579734 3ac233284e8925504fee5c0cb34717535b91747d cc <admin@jcwit.com> 1551615502 +0800	pull: Fast-forward
+3ac233284e8925504fee5c0cb34717535b91747d 8662eb935c7a9ea43ea4f914053b6733c5e76ca5 cc <admin@jcwit.com> 1551626403 +0800	commit: add user form unfinished
+8662eb935c7a9ea43ea4f914053b6733c5e76ca5 e68efd7c1e9fa517025c9992306260b551375d16 cc <admin@jcwit.com> 1551704733 +0800	pull: Fast-forward
+e68efd7c1e9fa517025c9992306260b551375d16 03381e348f8a99c3bf1e0ee1ccfbd44028c239f7 cc <admin@jcwit.com> 1551710826 +0800	commit: userupdate is fixed
+03381e348f8a99c3bf1e0ee1ccfbd44028c239f7 0850e02a5f1c7da45f3e4638e660ac1595f90389 cc <admin@jcwit.com> 1551793786 +0800	pull: Fast-forward
+0850e02a5f1c7da45f3e4638e660ac1595f90389 3f0dd23a89fb67110dbf1ba528b1ffd870fbcf16 cc <admin@jcwit.com> 1551797197 +0800	commit: role menu permission add and update finished
+3f0dd23a89fb67110dbf1ba528b1ffd870fbcf16 ee762c286292b8f0c01f207819fb198642608008 cc <admin@jcwit.com> 1552561008 +0800	pull: Fast-forward
+ee762c286292b8f0c01f207819fb198642608008 5fe25035d94afef88393b0fc9b4f7782b7270355 cc <admin@jcwit.com> 1553000227 +0800	commit: rbac finished
+5fe25035d94afef88393b0fc9b4f7782b7270355 6a87c6371108e8685586407a78b197d75db56ae4 cc <admin@jcwit.com> 1553224559 +0800	commit: host manage finished
+6a87c6371108e8685586407a78b197d75db56ae4 11afceaaedaf5a8958446e100a0daeaa9403da53 cc <admin@jcwit.com> 1553484121 +0800	commit: add wiki doc
+11afceaaedaf5a8958446e100a0daeaa9403da53 505188aa4d1495d889e567a22ca6bb58c7c1032f cc <admin@jcwit.com> 1554181625 +0800	commit: add ansible task playbook filemanage
+505188aa4d1495d889e567a22ca6bb58c7c1032f c37396ab803fb5822842815c7cc44bc6e194b7d0 cc <admin@jcwit.com> 1554289582 +0800	commit: add encrypt for webshell filemanage ansible
+c37396ab803fb5822842815c7cc44bc6e194b7d0 48f156202aa2c29d5c4c4dc47f7608fab97c4c68 cc <admin@jcwit.com> 1555247565 +0800	commit: 添加LDAP认证和企业微信扫码登录
+48f156202aa2c29d5c4c4dc47f7608fab97c4c68 fae91270d6fb0ae9d5089e976853232db0eec710 cc <admin@jcwit.com> 1555296520 +0800	commit: 使用信号实现用户创建前自动授权普通用户角色
+fae91270d6fb0ae9d5089e976853232db0eec710 250ba97ff2d23b569268014eea44b70103526ca4 cc <admin@jcwit.com> 1555651471 +0800	commit: add webssh
+250ba97ff2d23b569268014eea44b70103526ca4 fb5af91dae93c6a3755d419b5ced48d268be1068 cc <admin@jcwit.com> 1555662451 +0800	commit: use db mysql

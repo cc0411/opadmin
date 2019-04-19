@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>{{ title }}</h5>
+                        </div>
+                        <div class="ibox-content">
+                        {% load rbac %}
+                        {% if request|has_permission:'host:hostgroup_add' %}
+                        <div style="margin-bottom: 10px">
+                                <a href="{% url    'host:hostgroup_add' %}" class="btn btn-sm btn-primary ">添加主机组</a>
+                            </div>
+                        {% endif %}
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>机房名</th>
+                                    {% if request|has_permission:'host:hostgroup_update' or request|has_permission:'host:hostgroup_delete' %}
+                                    <th>操作</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {%  for group in  hostgroup_list %}
+                                <tr>
+                                    <td>{{ group.id }}</td>
+                                    <td>{{ group.name}}</td>
+                                    <td class="text-navy">
+                                        {%  if request|has_permission:'host:hostgroup_update' %}
+                                <a class="btn btn-xs btn-info" href="{% url 'host:hostgroup_update' group.id %}">更新主机组</a>
+                                        {%  endif %}
+                                        {%  if request|has_permission:'host:hostgroup_delete' %}
+                                <a class="btn btn-xs btn-danger" href="{% url 'host:hostgroup_delete'  group.id %}">删除主机组</a>
+                                        {%  endif %}
+                            </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+{% endblock %}

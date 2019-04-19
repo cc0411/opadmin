@@ -1,0 +1,79 @@
+<!--
+*
+*  INSPINIA - Responsive Admin Theme
+*  version 2.8
+*
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>{% block title %}OPADMIN | Dashboard{% endblock %}</title>
+    {% include "_css.html" %}
+    {% block custom_css %}{% endblock %}
+</head>
+
+<body>
+    <div id="wrapper">
+        <!-- 左侧导航菜单 -->
+
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav metismenu" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <img alt="image" class="rounded-circle" style="width: 48px;height: 48px" src="{{ MEDIA_URL }}{{ request.user.image }}">
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="block m-t-xs font-bold">{{ user.name }}</span>
+                                <span class="text-muted text-xs block">{% ifequal  user.is_superuser  1 %}
+                                    管理员 {% else %} 普通用户 {% endifequal %} <b class="caret"></b></span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                                <li><a class="dropdown-item" href="{% url 'user:user_profile' %}">Profile</a></li>
+                                <li class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                            </ul>
+                        </div>
+                        <div class="logo-element">
+                            IN+
+                        </div>
+                    </li>
+                     {% load rbac %}
+                     {% get_menu_styles request %}
+
+                </ul>
+
+            </div>
+        </nav>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        <!-- 顶部面板 -->
+        {%  include '_top-navbar.html' %}
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>{%  block page_title %}主页{% endblock %}</h2>
+                    {%  breadcrumb request %}
+                </div>
+                <div class="col-lg-2">
+
+                </div>
+            </div>
+            <!-- 页面内容-->
+            {% block content %} 要展示的内容{% endblock %}
+
+            <!-- 底部面板 -->
+           {%  include '_footer.html' %}
+        </div>
+    </div>
+
+
+
+    {% include '_js.html' %}
+    {% block custom_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,126 @@
+{% extends 'layout.html' %}
+
+
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>CDN更新日志记录</h2>
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'index' %}">Home</a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            <strong>CDN更新日志记录</strong>
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-lg-2">
+
+                </div>
+            </div>
+<div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>CDN更新日志记录</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div style="margin-bottom: 10px">
+                                <a style="margin-left: 30px" href="{% url    'workplan:cdnlogadd' %}" class="btn btn-sm btn-primary ">添加CDN操作记录</a>
+                                <div class="pull-left">
+                                    <form action="." method="get">
+                                <div class="input-daterange input-group" id="datepicker">
+                                    <input type="text" class="form-control-sm form-control" name="starttime" value="01/01/2019">
+                                    <span class="input-group-addon">至</span>
+                                    <input type="text" class="form-control-sm form-control" name="endtime" value="01/01/2019">
+                                    <button type="submit">查询</button>
+                                </div>
+                                        </form>
+                                </div>
+                            </div>
+                            </div>
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>操作人</th>
+                                    <th>游戏名</th>
+                                    <th>资源版本</th>
+                                    <th>是否增量</th>
+                                    <th>是否需要刷新</th>
+                                    <th>CDN类型</th>
+                                    <th>执行时间</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {%  for log in  all_logs.object_list %}
+                                <tr>
+                                    <td>{{ log.id }}</td>
+                                    <td>{{ log.user }}</td>
+                                    <td>{{ log.gname }}</td>
+                                    <td>{{ log.version}}</td>
+                                    <td>{{ log.is_full }}</td>
+                                    <td>{{ log.is_flush }}</td>
+                                    <td>{{ log.get_cdn_type_display }}</td>
+                                    <td>{{ log.ctime }}</td>
+                                    <td data-editable="false" class="text-center pull-left">
+                                <a class="btn btn-xs btn-info" href="{%  url  'workplan:cdnlogupdate' log.id %}">修改操作日志</a>
+                            </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="pageturn">
+                 <ul class="pagelist">
+          {% if all_logs.has_previous %}
+            <li class="long"><a href="?{{ all_logs.previous_page_number.querystring }}">上一页</a></li>
+        {% endif %}
+
+        {% for page in all_logs.pages %}
+            {% if page %}
+                {% ifequal page all_logs.number %}
+                    <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                {% else %}
+                    <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                {% endifequal %}
+            {% else %}
+                <li class="none"><a href="">...</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if all_logs.has_next %}
+            <li class="long"><a href="?{{ all_logs.next_page_number.querystring }}">下一页</a></li>
+        {% endif %}
+    </ul>
+</div>
+            </div>
+        </div>
+
+{% endblock %}
+{%  block custom_js %}
+   <script src="/static/js/jquery-3.1.1.min.js"></script>
+  <script src="/static/js/plugins/datapicker/bootstrap-datepicker.js"></script>
+
+<script>
+$('.input-daterange').datepicker({
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true
+            });
+
+
+
+</script>
+{%  endblock %}
+
+{%  block custom_css %}
+
+    <link href="/static/css/plugins/datapicker/datepicker3.css" rel="stylesheet">
+
+{%  endblock %}

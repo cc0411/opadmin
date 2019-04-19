@@ -1,0 +1,248 @@
+{% extends 'layout.html' %}
+{% block title %}文件管理{% endblock %}
+{% block page_title %}文件管理{% endblock %}
+{% load staticfiles %}
+{% block content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="tab-pane  active">
+                        <div class="ibox-title">
+                            <h5>{{ ip }}---文件管理</h5>
+                        </div>
+                        <div class="ibox-content split split-horizontal">
+                            <div id="filemanage"  server_id="{{serverid}}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+{%  block custom_css %}
+    <link rel="stylesheet" href="/static/js/plugins/jquery-ui/jquery-ui.min.css">
+    <link rel="stylesheet" href="/static/elfinder/css/elfinder.full.css"/>
+
+{%  endblock %}
+{% block custom_js %}
+    <script src="/static/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script src="/static/elfinder/js/elfinder.full.js"></script>
+    <!--Ace Editor -->
+<script type="text/javascript" src="/static/ace/ace.js"></script>
+<script type="text/javascript" src="/static/ace/ext-modelist.js"></script>
+<script type="text/javascript" src="/static/ace/ext-settings_menu.js"></script>
+<script type="text/javascript" src="/static/ace/ext-language_tools.js"></script>
+<!--split.js-->
+<script type="text/javascript" src="/static/split.js/split.min.js"></script>
+<script type="application/javascript">
+    function file_manager(hostid) {
+        var url = '/elfinder/yawd-connector/sftp/'+hostid+'/';
+        elfinderinit(url);
+        }
+    function elfinderinit(url){
+        var loct = window.location.search,
+            full_lng, locm, lng;
+            // detect language
+        if (loct && (locm = loct.match(/lang=([a-zA-Z_-]+)/))) {
+                full_lng = locm[1];
+        } else {
+                full_lng = (navigator.browserLanguage || navigator.language || navigator.userLanguage);
+        }
+        lng = full_lng.substr(0,2);
+        if (lng == 'ja') lng = 'jp';
+        else if (lng == 'pt') lng = 'pt_BR';
+        else if (lng == 'zh') lng = (full_lng.substr(0,5) == 'zh-tw')? 'zh_TW' : 'zh_CN';
+        $('#filemanage').elfinder({
+                    resizable: true,
+                    height: '100%', //elFinder框高度
+                    url : url,
+                    lang: 'zh_CN',
+                    soundPath: "{% static 'elfinder/sounds' %}",
+                    baseUrl : "{% static 'elfinder/' %}",
+                    //富文本编辑器
+                    commandsOptions: {
+                        edit: {
+                            editors : [
+                                {
+                                    // ACE Editor
+                                    // `mimes` is not set for support everything kind of text file
+                                    load : function(textarea) {
+                                        var self = this,
+                                            dfrd = $.Deferred(),
+                                            cdn  = "{% static 'ace' %}",
+                                            // cdn  = "//cdnjs.cloudflare.com/ajax/libs/ace/1.2.5",
+                                            init = function() {
+                                                console.log(cdn);
+                                                if (typeof ace === 'undefined') {
+                                                    self.fm.loadScript([
+                                                        cdn+'/ace.js',
+                                                        cdn+'/ext-modelist.js',
+                                                        cdn+'/ext-settings_menu.js',
+                                                        cdn+'/ext-language_tools.js'
+                                                    ], start);
+                                                } else {
+                                                    start();
+                                                }
+                                            },
+                                            start = function() {
+                                                var editor, editorBase, mode,
+                                                ta = $(textarea),
+                                                taBase = ta.parent(),
+                                                dialog = taBase.parent(),
+                                                id = textarea.id + '_ace',
+                                                ext = self.file.name.replace(/^.+\.([^.]+)|(.+)$/, '$1$2').toLowerCase(),
+                                                // MIME/mode map
+                                                mimeMode = {
+                                                    'text/x-php'              : 'php',
+                                                    'application/x-php'       : 'php',
+                                                    'text/html'               : 'html',
+                                                    'application/xhtml+xml'   : 'html',
+                                                    'text/javascript'         : 'javascript',
+                                                    'application/javascript'  : 'javascript',
+                                                    'text/css'                : 'css',
+                                                    'text/x-c'                : 'c_cpp',
+                                                    'text/x-csrc'             : 'c_cpp',
+                                                    'text/x-chdr'             : 'c_cpp',
+                                                    'text/x-c++'              : 'c_cpp',
+                                                    'text/x-c++src'           : 'c_cpp',
+                                                    'text/x-c++hdr'           : 'c_cpp',
+                                                    'text/x-shellscript'      : 'sh',
+                                                    'application/x-csh'       : 'sh',
+                                                    'text/x-python'           : 'python',
+                                                    'text/x-java'             : 'java',
+                                                    'text/x-java-source'      : 'java',
+                                                    'text/x-ruby'             : 'ruby',
+                                                    'text/x-perl'             : 'perl',
+                                                    'application/x-perl'      : 'perl',
+                                                    'text/x-sql'              : 'sql',
+                                                    'text/xml'                : 'xml',
+                                                    'application/docbook+xml' : 'xml',
+                                                    'application/xml'         : 'xml'
+                                                };
+
+                                                // set basePath of ace
+                                                ace.config.set('basePath', cdn);
+
+                                                // set base height
+                                                // console.log(taBase.height());
+                                                taBase.height(600); //编辑框大小
+
+                                                // detect mode
+                                                mode = ace.require('ace/ext/modelist').getModeForPath('/' + self.file.name).name;
+                                                if (mode === 'text') {
+                                                    if (mimeMode[self.file.mime]) {
+                                                        mode = mimeMode[self.file.mime];
+                                                    }
+                                                }
+                                                // show MIME:mode in title bar
+                                                taBase.prev().children('.elfinder-dialog-title').append(' (' + self.file.mime + ' : ' + mode.split(/[\/\\]/).pop() + ')');
+                                                // TextArea button and Setting button
+                                                $('<div class="ui-dialog-buttonset"/>').css('float', 'left')
+                                                .append(
+                                                    $('<button>TextArea</button>')
+                                                    .button()
+                                                    .on('click', function(){
+                                                        if (ta.data('ace')) {
+                                                            ta.removeData('ace');
+                                                            editorBase.hide();
+                                                            ta.val(editor.session.getValue()).show().focus();
+                                                            $(this).text('AceEditor');
+                                                        } else {
+                                                            ta.data('ace', true);
+                                                            editorBase.show();
+                                                            editor.setValue(ta.hide().val(), -1);
+                                                            editor.focus();
+                                                            $(this).text('TextArea');
+                                                        }
+                                                    })
+                                                )
+                                                .append(
+                                                    $('<button>Ace editor setting</button>')
+                                                    .button({
+                                                        icons: {
+                                                            primary: 'ui-icon-gear',
+                                                            secondary: 'ui-icon-triangle-1-e'
+                                                        },
+                                                        text: false
+                                                    })
+                                                    .on('click', function(){
+                                                        editor.showSettingsMenu();
+                                                    })
+                                                )
+                                                .prependTo(taBase.next());
+                                                // Base node of Ace editor
+                                                editorBase = $('<div id="'+id+'" style="width:100%; height:100%;"/>').text(ta.val()).insertBefore(ta.hide());
+                                                // Ace editor configure
+                                                ta.data('ace', true);
+                                                editor = ace.edit(id);
+                                                ace.require('ace/ext/language_tools');
+                                                ace.require('ace/ext/settings_menu').init(editor);
+                                                editor.$blockScrolling = Infinity;
+                                                editor.setOptions({
+                                                    theme: 'ace/theme/monokai',
+                                                    mode: 'ace/mode/' + mode,
+                                                    fontSize: '14px',
+                                                    wrap: true,
+                                                    enableBasicAutocompletion: true,
+                                                    enableSnippets: true,
+                                                    enableLiveAutocompletion: false
+                                                });
+                                                editor.commands.addCommand({
+                                                    name : "saveFile",
+                                                    bindKey: {
+                                                        win : 'Ctrl-s',
+                                                        mac : 'Command-s'
+                                                    },
+                                                    exec: function(editor) {
+                                                        self.doSave();
+                                                    }
+                                                });
+                                                editor.commands.addCommand({
+                                                    name : "closeEditor",
+                                                    bindKey: {
+                                                        win : 'Ctrl-w|Ctrl-q',
+                                                        mac : 'Command-w|Command-q'
+                                                    },
+                                                    exec: function(editor) {
+                                                        self.doCancel();
+                                                    }
+                                                });
+
+                                                editor.resize();
+
+                                                dfrd.resolve(editor);
+                                            };
+
+                                        // init & start
+                                        init();
+
+                                        return dfrd;
+                                    },
+                                    close : function(textarea, instance) {
+                                        if (instance) {
+                                            instance.destroy();
+                                            $(textarea).show();
+                                        }
+                                    },
+                                    save : function(textarea, instance) {
+                                        instance && $(textarea).data('ace') && (textarea.value = instance.session.getValue());
+                                    },
+                                    focus : function(textarea, instance) {
+                                        instance && $(textarea).data('ace') && instance.focus();
+                                    },
+                                    resize : function(textarea, instance, e, data) {
+                                        instance && instance.resize();
+                                    }
+                                }
+                            ]
+                        }
+                    }
+            });
+
+
+    }
+    $(document).ready(function () {
+        file_manager($("#filemanage").attr("server_id"));
+    })
+</script>
+{%  endblock %}

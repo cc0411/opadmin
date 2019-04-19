@@ -1,0 +1,186 @@
+{% extends 'layout.html' %}
+{% load rbac %}
+
+{% block title %}菜单列表{% endblock %}
+{% block page_title %}菜单列表{% endblock %}
+
+{% block content %}
+    <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox">
+                        <div class="ibox-title">
+                    <h5>菜单列表</h5>
+                    </div>
+                        <div class="ibox-content">
+
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <div class="panel panel-default">
+                                         <div class="panel-heading">
+                    <i class="fa fa-book" aria-hidden="true"></i> 一级菜单
+                    <a href="{% memory_url request 'user:menu_add' %}" class="right btn btn-success btn-xs"
+                       style="padding: 2px 8px;margin: -3px;">
+                        <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                        新建
+                    </a>
+
+
+                </div>
+                                        <div class="panel-body">
+                                                <!-- Table -->
+                                            <table class="table">
+                    <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>图标</th>
+                        <th>选项</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in menus %}
+                        <tr class="{% if row.id|safe == menu_id %}active{% endif %}">
+                            <td>
+                                <a href="?mid={{ row.id }}">{{ row.title }}</a>
+                            </td>
+                            <td>
+                                <i class="fa {{ row.icon }}" aria-hidden="true"></i>
+                            </td>
+                            <td>
+                                <a style="color: #333333;" href="{% memory_url request 'user:menu_update' pk=row.id %}">
+                                    <i class="fa fa-edit" aria-hidden="true"></i></a>
+
+
+                                <a style="color: #d9534f;" href="{% memory_url request 'user:menu_delete' pk=row.id %}"><i
+                                        class="fa fa-trash-o"></i></a>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">
+                    <i class="fa fa-gavel" aria-hidden="true"></i> 二级菜单
+                    {% if menu_id %}
+                        <a href="{% memory_url request 'user:second_menu_add' menu_id=menu_id %}"
+                           class="right btn btn-success btn-xs"
+                           style="padding: 2px 8px;margin: -3px;">
+                            <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                            新建
+                        </a>
+                    {% endif %}
+
+
+                </div>
+                                        <div class="panel-body">
+                                            <!-- Table -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>CODE&URL</th>
+                        <th>选项</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in second_menus %}
+                        <tr class="{% if row.id|safe == second_menu_id %}active {% endif %}">
+                            <td rowspan="2">
+                                <a href="?mid={{ menu_id }}&sid={{ row.id }}">{{ row.title }}</a>
+                            </td>
+                            <td>{{ row.name }}</td>
+                            <td>
+                                <a style="color: #333333;"
+                                   href="{% memory_url request 'user:second_menu_update' pk=row.id %}">
+                                    <i class="fa fa-edit" aria-hidden="true"></i></a>
+
+
+                                <a style="color: #d9534f;"
+                                   href="{% memory_url request 'user:second_menu_delete' pk=row.id %}"><i
+                                        class="fa fa-trash-o"></i></a>
+
+                            </td>
+                        </tr>
+                        <tr class="{% if row.id|safe == second_menu_id %}active {% endif %}">
+                            <td colspan="2" style="border-top: 0">{{ row.url }}</td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="panel panel-default">
+                                         <div class="panel-heading">
+                    <i class="fa fa-gavel" aria-hidden="true"></i> 权限
+
+                    <div class="btn-group right">
+                        {% if second_menu_id %}
+                            <a href="{% memory_url request 'user:permission_add' second_menu_id=second_menu_id %}"
+                               class="right btn btn-success btn-xs"
+                               style="padding: 2px 8px;margin: -3px;">
+                                <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                                新建
+                            </a>
+                        {% endif %}
+                        <a href="{% memory_url request 'user:multi_permissions' %}" class="btn btn-xs btn-primary"
+                           style="padding: 2px 8px;margin: -3px 0;">
+                            <i class="fa fa-mail-forward" aria-hidden="true"></i>
+                            批量操作
+                        </a>
+                    </div>
+
+                </div>
+                                        <div class="panel-body">
+                                            <!-- Table -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>CODE&URL</th>
+                        <th>选项</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in permissions %}
+                        <tr>
+                            <td rowspan="2">{{ row.title }}</td>
+                            <td>{{ row.name }}</td>
+                            <td>
+                                <a style="color: #333333;"
+                                   href="{% memory_url request 'user:permission_update' pk=row.id %}">
+                                    <i class="fa fa-edit" aria-hidden="true"></i></a>
+
+
+                                <a style="color: #d9534f;"
+                                   href="{% memory_url request 'user:permission_delete' pk=row.id %}"><i
+                                        class="fa fa-trash-o"></i></a>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border-top: 0">{{ row.url }}</td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock %}

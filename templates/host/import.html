@@ -1,0 +1,60 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>主机批量导入</h2>
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'index' %}">Home</a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            <strong>主机批量导入</strong>
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-lg-2">
+
+                </div>
+            </div>
+        <div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+            <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <div
+                        style="position: relative;display: inline-block;height: 50px;min-width: 300px;overflow: hidden;">
+                    <div style="position: absolute;top: 0;left: 0;right: 0;bottom: 0;z-index: 1000;border: 1px dotted #9d9d9d;color: #9d9d9d;line-height: 50px;padding-left: 15px;">
+                        <i class="fa fa-cloud-upload" aria-hidden="true"></i>
+                        <span>点击上传Excel文件</span>
+                    </div>
+                    <input name="xlsfile" type="file" id="excelFile"
+                           style="position: absolute;top: 0;left: 0;right: 0;bottom: 0;background-color: #333333;z-index: 1001;opacity: 0;filter:alpha(opacity=0);">
+                </div>
+                <p class="help-block">注意：批量导入的Excel需使用规定格式模板. <a href="{% url 'host:tpl' %}">下载模板</a></p>
+            </div>
+            <button type="submit" class="btn btn-primary">上传</button>
+            {% if status %}
+                <span style="color: green;">{{ msg }}</span>
+            {% else %}
+                <span style="color: red;">{{ msg }}</span>
+            {% endif %}
+        </form>
+        </div>
+
+
+        </div>
+
+
+{% endblock %}
+
+{% block custom_js %}
+    <script>
+        $(function () {
+            $('#excelFile').change(function (e) {
+                var fileName = e.currentTarget.files[0].name;
+                $(this).prev().find('span').text(fileName);
+            })
+        })
+    </script>
+{% endblock %}

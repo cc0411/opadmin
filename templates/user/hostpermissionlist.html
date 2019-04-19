@@ -1,0 +1,75 @@
+{%  extends 'layout.html' %}
+
+{% block title %}
+    主机权限列表
+{%  endblock %}
+
+{% block  content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>主机权限列表</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div style="margin-bottom: 10px">
+                                <a href="{% url    'user:hostper_add' %}" class="btn btn-sm btn-primary ">添加权限</a>
+                            </div>
+
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户</th>
+                                    <th>权限</th>
+                                    <th>主机组</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {%  for permission in  all_permissions.object_list %}
+                                <tr id="{{ permission.id }}">
+                                    <td>{{ permission.id }}</td>
+                                    <td>{{ permission.user.username }}</td>
+                                    <td>{%  for p in  permission.permissions.all %}<a>{{ p.name }}</a><br>{% endfor %}</td>
+                                    <td>{%  for g  in permission.groups.all %}<a>{{ g.name }}</a><br>{% endfor %}</td>
+                                    <td>
+                                <a class="btn btn-xs btn-info" href="{%  url 'user:hostper_update' permission.id %}">更新主机权限</a>
+                                <a class="btn btn-xs btn-danger" href="{%  url 'user:hostper_delete' permission.id %}">删除主机权限</a>
+                            </td>
+
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="pageturn">
+                 <ul class="pagelist">
+          {% if all_permissions.has_previous %}
+            <li class="long"><a href="?{{ all_permissions.previous_page_number.querystring }}">上一页</a></li>
+        {% endif %}
+
+        {% for page in all_permissions.pages %}
+            {% if page %}
+                {% ifequal page all_permissions.number %}
+                    <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                {% else %}
+                    <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                {% endifequal %}
+            {% else %}
+                <li class="none"><a href="">...</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if all_permissions.has_next %}
+            <li class="long"><a href="?{{ all_permissions.next_page_number.querystring }}">下一页</a></li>
+        {% endif %}
+    </ul>
+</div>
+            </div>
+        </div>
+{%  endblock %}

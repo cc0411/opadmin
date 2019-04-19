@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block title %}WebSSH{% endblock %}
+{% block page_title %}WebSSH{% endblock %}
+
+{% block content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>WebSSH</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div id="terminal" ip="{{ip}}" server_id="{{serverid}}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+{%  block custom_css %}
+    <link rel="stylesheet" href="/static/xterm/css/xterm.css"/>
+    <link rel="stylesheet" href="/static/xterm/addons/fullscreen/fullscreen.css"/>
+{%  endblock %}
+{% block custom_js %}
+    <script src="/static/xterm/js/xterm.js"></script>
+    <script src="/static/xterm/addons/fit/fit.js"></script>
+    <script src="/static/xterm/addons/attach/attach.js"></script>
+    <script src="/static/xterm/addons/fullscreen/fullscreen.js"></script>
+    <script src="/static/zmodem/zmodem.devel.js"></script>
+    <script src="/static/xterm/addons/zmodem/zmodem.js"></script>
+    <script src="/static/xterm/sshconnect.js"></script>
+    <script src="/static/bootbox/bootbox.js"></script>
+
+{%  endblock %}

@@ -1,0 +1,10 @@
+{%  for item in  menu_dict.values %}
+                    <li>
+                        <a href="#"><i class="fa  {{ item.icon }}"></i> <span class="nav-label">{{ item.title }}</span><span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level collapse {{ item.class }}">
+                            {%  for foo in item.children %}
+                            <li><a href="{{ foo.url }}" class="{{ per.class }}">{{ foo.title }}</a></li>
+                                {% endfor %}
+                        </ul>
+                    </li>
+                    {% endfor %}

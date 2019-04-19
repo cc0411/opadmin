@@ -1,0 +1,85 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta charset="utf-8">
+    <title>{{ namespace }} - {{ pod_name }}</title>
+    <meta name="viewport" content="width=device-width">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 20px !important;
+            font-family: sans-serif;
+        }
+
+        label {
+            display: block !important;
+        }
+
+        label span {
+            float: left;
+            width: 100px;
+            margin-top: 2px;
+        }
+
+        label .form-control {
+            display: inline !important;
+            width: 300px;
+        }
+
+        body > div {
+            margin-top: 15px;
+        }
+
+        kubernetes-container-terminal {
+
+        }
+    </style>
+    <link rel="stylesheet" href="/static/customs/css/patternfly.css">
+    <link rel="stylesheet" href="/static/customs/css/xterm.css">
+    <link rel="stylesheet" href="/static/customs/css/container-terminal.css">
+    <link rel="stylesheet" href="/static/xadmin/vendor/bootstrap/css/bootstrap.min.css">
+   <script src="/static/vendor/jquery-1.8.3.min.js"></script>
+   <script src="/static/xadmin/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/customs/js/angular.js"></script>
+    <script src="/static/customs/js/xterm.js"></script>
+    <script src="/static/customs/js/container-terminal.js"></script>
+</head>
+<body>
+<div style="text-align:left">
+    <span class="alert-info" >命名空间
+    : {{ namespace }} 连接容器名: {{ pod_name }}</span>
+</div>
+<div ng-app="exampleApp" class="">
+    <kubernetes-container-terminal pod="selfLink" container="containerName" screen-keys="true"
+     autofocus="true" title="远程终端 {{ pod_name }} 命名空间为: {{ namespace }}" cols="110" rows="24" >
+    </kubernetes-container-terminal>
+<script type="text/javascript">
+    angular.module('exampleApp', ['kubernetesUI'])
+        .config(function (kubernetesContainerSocketProvider) {
+            kubernetesContainerSocketProvider.WebSocketFactory = "CustomWebSockets";
+        })
+
+        .run(function ($rootScope) {
+            $rootScope.baseUrl = "{{ k8s_url }}";
+            $rootScope.selfLink = "/api/v1/namespaces/{{ namespace }}/pods/{{ pod_name }}";
+            $rootScope.containerName = "";
+            $rootScope.accessToken = "{{ token }}";
+            $rootScope.preventSocket = true;
+        })
+        /* Our custom WebSocket factory adapts the url */
+        .factory("CustomWebSockets", function ($rootScope) {
+            return function CustomWebSocket(url, protocols) {
+                url = $rootScope.baseUrl + url;
+                if ($rootScope.accessToken)
+                    url += "&access_token=" + $rootScope.accessToken;
+                return new WebSocket(url, protocols);
+            };
+        });
+</script>
+
+</div>
+</body>
+</html>

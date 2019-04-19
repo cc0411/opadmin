@@ -1,0 +1,73 @@
+{% extends 'layout.html' %}
+
+{% block custom_css %}
+    <link rel="stylesheet" href="/static/highlight/styles/github.css">
+<link rel="stylesheet" href="/static/highlight/styles/code.css">
+    <!--SyntaxHighlighter的基本脚本-->
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shCore.js"></script>
+<!--SyntaxHighlighter的对各个编程语言解析的脚本-->
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushJScript.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushPhp.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushJava.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushCSharp.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushCpp.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushAS3.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushPython.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushVb.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushSql.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushXml.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/scripts/shBrushPlain.js"></script>
+<!--所使用的SyntaxHighlighter样式-->
+<link type="text/css" rel="stylesheet" href="/static/syntaxhighlighter/styles/shCoreEclipse.css"/>
+<!--初始化SyntaxHighlighter的必须代码，必须放在head中，引入文件之后-->
+<script type="text/javascript">SyntaxHighlighter.all();</script>
+<!--用于消除右上角的广告-->
+<script type="text/javascript">SyntaxHighlighter.defaults['toolbar'] = false;</script>
+    <style>
+        .col-md-3 {
+            position: fixed;
+            right: 0;
+            width: 300px;
+            margin-left: 15px;
+        }
+
+        .blog-item-meta li {
+            margin: 5px 15px;
+            display: inline;
+            list-style-type: none;
+            white-space: nowrap;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row" style="margin-left: 15px; margin-right: 15px;">
+
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <article class="card mb-4">
+                    <header class="card-header text-center">
+                        <h1 class="card-title">{{ object.title }}</h1>
+                        {% if request.user.name == object.author %}
+                            <div class="card-meta">
+                                <a href="{% url 'wiki:doc_update' object.id %}">编辑&nbsp;&nbsp;</a>
+                            </div>
+                        {% endif %}
+                            <ul class="blog-item-meta" style="margin-top: 5px;margin-bottom: 5px">
+                                <li><i class="fa fa-user-o"></i>By <a
+                                        href="javascript:void(0)">{{ object.author}}</a></li>
+                                <li><i class="fa fa-calendar-o"></i> {{ object.ctime|date:"Y-m-d" }}</li>
+
+                            </ul>
+
+                    </header>
+
+                    <div class="card-body" style="margin-left: 15px;margin-right: 15px;">
+                        {{ object.content|safe }}
+                    </div>
+                </article>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,285 @@
+{% extends 'layout.html' %}
+{%  block custom_css %}
+    <link rel="stylesheet" href="/static/css/plugins/datapicker/datepicker3.css">
+    <link rel="stylesheet" href="/static/css/plugins/sweetalert/sweetalert.css">
+{% endblock %}
+{% block custom_js %}
+    <!-- Data picker -->
+   <script src="/static/js/plugins/datapicker/bootstrap-datepicker.js"></script>
+     <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
+    <script>
+    let module_body = $('#moduleLog tbody');
+    let playbook_body = $('#playbookLog tbody');
+     // 按日期搜索日志
+
+        // 查看module日志
+        module_body.on('click', 'button.result', function () {
+            let pk = $(this).attr('data-id');
+            let obj = $('pre');
+            obj.html('');
+            $.get('/task/run_log/?module_log_id=' + pk, function (res) {
+                for (let i of res.data) {
+                    obj.append(i)
+                }
+            });
+            obj.scrollTop = obj.scrollHeight;
+        });
+        // 查看playbook日志
+        playbook_body.on('click', 'button.result', function () {
+            let pk = $(this).attr('data-id');
+            let obj = $('pre');
+            obj.html('');
+            $.get('/task/run_log/?playbook_log_id=' + pk, function (res) {
+                for (let i of res.data) {
+                    obj.append(i)
+                }
+            });
+            obj.scrollTop = obj.scrollHeight;
+        });
+        //删除module日志
+        module_body.on('click', 'button.delete', function () {
+            let pk = $(this).attr('data-id');
+            let $tr_obj = $(this).parents('tr');
+
+                swal({
+                        title: "你确定删除",
+                        text: "你将无法恢复",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "确定",
+                        closeOnConfirm: false,
+                        showLoaderOnConfirm:true,
+                    }, function () {
+                        $.ajaxSetup({headers: {"X-CSRFToken": '{{ csrf_token }}'}});
+                        $.ajax({
+                            url: '{% url 'ansible_task:module_log_del' %}',
+                            type: 'POST',
+                            data: {'pk': pk},
+                            success: function (data) {
+                                var obj = JSON.parse(data);
+                                if (obj.status) {
+                                    swal({title: "删除", text: "已成功删除", type: "success"}, function () {
+                                        //window.location.reload();
+                                        $tr_obj.remove();
+                                    })
+                                } else {
+                                    swal("错误", "删除" + "[ " + obj.error + " ]" + "遇到错误", "error");
+                                }
+                            }
+                        });
+
+
+                    });
+        });
+        //删除playbook日志
+        playbook_body.on('click', 'button.delete', function () {
+            let pk = $(this).attr('data-id');
+            let $tr_obj = $(this).parents('tr');
+                swal({
+                        title: "你确定删除",
+                        text: "你将无法恢复",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "确定",
+                        closeOnConfirm: false,
+                        showLoaderOnConfirm:true,
+                    }, function () {
+                        $.ajaxSetup({headers: {"X-CSRFToken": '{{ csrf_token }}'}});
+                        $.ajax({
+                            url: '{% url 'ansible_task:playbook_log_del' %}',
+                            type: 'POST',
+                            data: {'pk': pk},
+                            success: function (data) {
+                                var obj = JSON.parse(data);
+                                if (obj.status) {
+                                    swal({title: "删除", text: "已成功删除", type: "success"}, function () {
+                                        //window.location.reload();
+                                        $tr_obj.remove();
+                                    })
+                                } else {
+                                    swal("错误", "删除" + "[ " + obj.error + " ]" + "遇到错误", "error");
+                                }
+                            }
+                        });
+
+
+                    });
+        });
+    </script>
+{% endblock %}
+{% block title %}执行日志{% endblock %}
+{% block page_title %}执行日志{% endblock %}
+{% block content %}
+<div class="wrapper wrapper-content animated fadeIn">
+
+            <div class="row">
+                <div class="col-lg-12">
+                <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>执行日志</h5>
+                        </div>
+                    <div class="ibox-content">
+                        <div class="tabs-container">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li><a class="nav-link active" data-toggle="tab" href="#tab-1">查看模块操作日志</a></li>
+                            <li><a class="nav-link" data-toggle="tab" href="#tab-2">查看playbook操作日志</a></li>
+                        </ul>
+                        <div class="tab-content">
+
+                            <div role="tabpanel" id="tab-1" class="tab-pane active">
+                                <div class="panel-body">
+                                <table class="table table-hover" id="moduleLog">
+                                <thead>
+                                <tr>
+                                    <th>操作用户</th>
+                                    <th>操作用户IP</th>
+                                    <th>模块名称</th>
+                                    <th>模块参数</th>
+                                    <th>主机</th>
+                                    <th>执行时间</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for info in all_module_log.object_list %}
+                                        <tr id="{{ info.id }}">
+                                            <td>{{ info.user }}</td>
+                                            <td>{{ info.remote_ip }}</td>
+                                            <td>{{ info.module }}</td>
+                                            <td>{{ info.args }}</td>
+                                            <td>{{ info.server }}</td>
+                                            <td>{{ info.ctime|date:"Y-m-d H:i:s" }}</td>
+                                            <td>
+                                                <button type="button" class="result btn btn-default"
+                                                        data-id="{{ info.id }}"
+                                                        data-toggle="modal"
+                                                        data-target="#modal-default"><i
+                                                        class="fa fa-fw fa-eye"></i>
+                                                </button>
+                                                <button type="button" class="delete btn btn-danger"
+                                                        data-id="{{ info.id }}"><i
+                                                        class="glyphicon glyphicon-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                                <div class="pageturn">
+                                <ul class="pagelist">
+          {% if all_module_log.has_previous %}
+            <li class="long"><a href="?{{ all_module_log.previous_page_number.querystring }}">上一页</a></li>
+        {% endif %}
+
+        {% for page in all_module_log.pages %}
+            {% if page %}
+                {% ifequal page all_module_log.number %}
+                    <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                {% else %}
+                    <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                {% endifequal %}
+            {% else %}
+                <li class="none"><a href="">...</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if all_module_log.has_next %}
+            <li class="long"><a href="?{{ all_module_log.next_page_number.querystring }}">下一页</a></li>
+        {% endif %}
+    </ul>
+                                 </div>
+                          </div>
+                          </div>
+                            <div role="tabpanel" id="tab-2" class="tab-pane">
+                                <div class="panel-body">
+                                <table class="table table-hover" id="playbookLog">
+                                <thead>
+                                <tr>
+                                    <th>操作用户</th>
+                                    <th>操作用户IP</th>
+                                    <th>剧本名称</th>
+                                    <th>执行时间</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for info in all_playbook_log.object_list %}
+
+                                        <tr>
+                                            <td>{{ info.user.username }}</td>
+                                            <td>{{ info.remote_ip }}</td>
+                                            <td>{{ info.name }}</td>
+                                            <td>{{ info.ctime|date:"Y-m-d H:i:s" }}</td>
+                                            <td>
+                                                <button type="button" class="result btn btn-default"
+                                                        data-id="{{ info.id }}"
+                                                        data-toggle="modal"
+                                                        data-target="#modal-default"><i
+                                                        class="fa fa-fw fa-eye"></i>
+                                                </button>
+                                                <button type="button" class="delete btn btn-default"
+                                                        data-id="{{ info.id }}"><i
+                                                        class="glyphicon glyphicon-trash"></i></button>
+                                            </td>
+                                        </tr>
+
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                                <div class="pageturn">
+                                <ul class="pagelist">
+          {% if all_playbook_log.has_previous %}
+            <li class="long"><a href="?{{ all_playbook_log.previous_page_number.querystring }}">上一页</a></li>
+        {% endif %}
+
+        {% for page in all_playbook_log.pages %}
+            {% if page %}
+                {% ifequal page all_playbook_log.number %}
+                    <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                {% else %}
+                    <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                {% endifequal %}
+            {% else %}
+                <li class="none"><a href="">...</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if all_playbook_log.has_next %}
+            <li class="long"><a href="?{{ all_playbook_log.next_page_number.querystring }}">下一页</a></li>
+        {% endif %}
+    </ul>
+                                 </div>
+                                </div>
+                            </div>
+                            <div class="modal fade bd-example-modal-lg" id="modal-default">
+                            <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title">执行结果</h4>
+                            </div>
+                            <div class="modal-body">
+                                    <pre style="background-color: black; height: 500px">
+
+                                    </pre>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                            </div>
+                        </div>
+                        <!-- /.modal-content -->
+                    </div>
+                    <!-- /.modal-dialog -->
+                </div>
+                        </div>
+
+
+                    </div>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+</div>
+
+{% endblock %}

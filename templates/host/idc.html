@@ -1,0 +1,54 @@
+{% extends 'layout.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>{{ title }}</h5>
+                        </div>
+                        <div class="ibox-content">
+                        {% load rbac %}
+                        {%  if request|has_permission:'host:idc_add' %}
+                            <div style="margin-bottom: 10px">
+                                <a href="{% url 'host:idc_add' %}" class="btn btn-sm btn-primary ">添加机房</a>
+                            </div>
+                        {% endif  %}
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>机房名</th>
+                                    {% if request|has_permission:'host:idc_update' or request|has_permission:'host:idc_delete' %}
+                                    <th>操作</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {%  for idc in  idc_list %}
+                                <tr>
+                                    <td>{{ idc.id }}</td>
+                                    <td>{{ idc.name}}</td>
+                                    <td class="text-navy">
+                                        {%  if request|has_permission:'host:idc_update' %}
+                                    <a class="btn btn-xs btn-info" href="{% url 'host:idc_update' idc.id %}">更新机房</a>
+                                        {%  endif %}
+                                    {%  if request|has_permission:'host:idc_delete' %}
+                                    <a class="btn btn-xs btn-danger" href="{% url 'host:idc_delete'  idc.id %}">删除机房</a>
+                                    {%  endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}

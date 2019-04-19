@@ -1,0 +1,76 @@
+{%  extends 'layout.html' %}
+
+{% block title %}
+   {{ title }}
+{%  endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block  content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>{{ title }}</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div style="margin-bottom: 10px">
+                                <a href="{% url    'wiki:doc_add' %}" class="btn btn-sm btn-primary ">添加文档</a>
+                            </div>
+
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>标题</th>
+                                    <th>作者</th>
+                                    <th>发表时间</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {%  for doc in  all_docs.object_list %}
+                                <tr id="{{ doc.id }}">
+                                    <td>{{ doc.id }}</td>
+                                    <td>{{ doc.title }}</td>
+                                    <td>{{ doc.author }}</td>
+                                    <td>{{ doc.ctime }}</td>
+                                    <td class="text-navy">
+                                        <a class="btn btn-xs btn-info" href="{% url 'wiki:doc_detail' doc.id %}">查看文档</a>
+                                <a class="btn btn-xs btn-info" href="{% url 'wiki:doc_update' doc.id %}">更新文档</a>
+                                <a class="btn btn-xs btn-danger" href="{% url 'wiki:doc_delete' doc.id %}">删除文档</a>
+                            </td>
+
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="pageturn">
+                 <ul class="pagelist">
+          {% if all_docs.has_previous %}
+            <li class="long"><a href="?{{ all_docs.previous_page_number.querystring }}">上一页</a></li>
+        {% endif %}
+
+        {% for page in all_docs.pages %}
+            {% if page %}
+                {% ifequal page all_docs.number %}
+                    <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                {% else %}
+                    <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                {% endifequal %}
+            {% else %}
+                <li class="none"><a href="">...</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if all_docs.has_next %}
+            <li class="long"><a href="?{{ all_docs.next_page_number.querystring }}">下一页</a></li>
+        {% endif %}
+    </ul>
+</div>
+            </div>
+        </div>
+{%  endblock %}

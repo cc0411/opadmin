@@ -1,0 +1,835 @@
+{% extends 'base.html'%}
+{%load i18n%}
+{% block title %}{% trans 'webterminal' %}{% endblock %}
+{% load staticfiles %}
+    {% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/xterm/xterm.css' %}"/>
+    <link rel="stylesheet" href="{% static 'plugins/xterm/addons/fullscreen/fullscreen.css' %}"/>
+    <link rel="stylesheet" href="{% static 'plugins/jstree/themes/proton/style.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'plugins/font-awesome/css/font-awesome.min.css' %}"/>
+<style>
+    .ui-front {
+        /* make text editor to the front */
+        z-index: 9999 !important;
+    }
+    .elfinder-bottomtray {
+        /* make text editor to the front */
+        z-index: 9999 !important;
+    }
+
+    .tab1 {
+       height: 800px;
+       border: 1px solid #ddd;
+       border-radius: 4px;
+     }
+
+     #tab1, #tab2 {
+       padding: 20px;
+     }
+
+     #tab1 p {
+       padding: 0;
+     }
+
+
+     .split p, .split-flex p {
+       padding: 20px;
+     }
+
+     .split, .split-flex {
+       -webkit-box-sizing: border-box;
+          -moz-box-sizing: border-box;
+               box-sizing: border-box;
+
+       overflow-y: auto;
+       overflow-x: hidden;
+     }
+
+     .gutter {
+       background-color: #eee;
+       background-repeat: no-repeat;
+       background-position: 50%;
+     }
+
+     .gutter.gutter-horizontal {
+       background-image: url('{% static "plugins/split.js/img/vertical.png"%}');
+       cursor: ew-resize;
+     }
+
+     .gutter.gutter-vertical {
+       background-image: url('{% static "plugins/split.js/img/horizontal.png"%}');
+       cursor: ns-resize;
+     }
+
+     .split.split-horizontal, .gutter.gutter-horizontal {
+       height: 100%;
+       float: left;
+     }
+</style>
+<link rel="stylesheet" type="text/css" href="{% static "plugins/jquery-ui/jquery-ui.min.css"%}">
+<!-- elFinder CSS (REQUIRED) -->
+<link rel="stylesheet" type="text/css" href="{% static "plugins/elfinder/css/elfinder.min.css"%}">
+    {% endblock %}
+{% block content %}
+<div class="row tab1">
+    <div class="col-md-2 split split-horizontal" id="tab1">
+        <form id="search">
+        <div class="input-group">
+            <input type="search" id="q" placeholder="{% trans 'search' %}" class="form-control">
+            <span class="input-group-addon"><button type="submit"><i class="fa fa-search"></i></button></span>
+        </div>
+        </form>
+        <div id="server_list" role="tree"></div>
+    </div>
+    <div class="col-md-10 split split-horizontal" id="tab2">
+        <div class="span2 leftMenu">
+            <ul class="nav nav-tabs marginBottom" id="myTab">
+                <li class="active ">
+                    <a href="#help" class="backgroundRed">{% trans 'help info' %}<button class="close closeTab" type="button" >×</button></a>
+                </li>
+            </ul>
+        </div>
+        <div class="tab-content span4">
+            <div class="tab-pane active" id="help">{% trans 'help info' %}</div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'plugins/xterm/xterm.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/fit/fit.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/attach/attach.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/terminado/terminado.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/fullscreen/fullscreen.js' %}"></script>
+<script src="{% static 'plugins/zmodem/zmodem.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/zmodem/zmodem.js' %}"></script>
+<script src="{% static 'plugins/jstree/jstree.js' %}"></script>
+<script src="{% static "plugins/jquery-ui/jquery-ui.js"%}"></script>
+<!-- elFinder JS (REQUIRED) -->
+<script src="{% static "plugins/elfinder/js/elfinder.min.js"%}"></script>
+<!--Ace Editor -->
+<script type="text/javascript" src="{% static "plugins/ace/ace.js" %}"></script>
+<script type="text/javascript" src="{% static "plugins/ace/ext-modelist.js" %}"></script>
+<script type="text/javascript" src="{% static "plugins/ace/ext-settings_menu.js" %}"></script>
+<script type="text/javascript" src="{% static "plugins/ace/ext-language_tools.js" %}"></script>
+<!--split.js-->
+<script type="text/javascript" src="{% static "plugins/split.js/split.min.js" %}"></script>
+<script type="text/javascript" src="{% static "plugins/jquery.fullscreen/jquery.fullscreen.min.js" %}"></script>
+<script src="{% static 'plugins/bootbox/bootbox.js' %}"></script>
+<script type="application/javascript">
+
+
+    var currentTab;
+    var composeCount = 0;
+    //initilize tabs
+    $(function () {
+
+        //when ever any tab is clicked this method will be call
+        $("#myTab").on("click", "a", function (e) {
+            e.preventDefault();
+
+            $(this).tab('show');
+            $currentTab = $(this);
+        });
+
+
+        //registerComposeButtonEvent();
+        registerCloseEvent('none');
+    });
+
+
+    //this method will register event on close icon on the tab..
+    function registerCloseEvent(protocol) {
+
+        $(".closeTab").click(function () {
+            var tabContentId = $(this).parent().attr("href");
+            //there are multiple elements which has .closeTab icon so close the tab whose close icon is clicked
+            if (protocol == 'ssh') {
+                var ws = terminals[tabContentId.substr(1)];
+                ws.send(JSON.stringify(['close']))
+                delete terminals[tabContentId.substr(1)];
+            }
+            $(this).parent().parent().remove(); //remove li of tab
+            $('#myTab a:last').tab('show'); // Select first tab
+            $(tabContentId).remove(); //remove respective tab content
+        });
+    }
+
+    //shows the tab with passed content div id..paramter tabid indicates the div where the content resides
+    function showTab(tabId) {
+        $('#myTab a[href="#' + tabId + '"]').tab('show');
+    }
+    //return current active tab
+    function getCurrentTab() {
+        return currentTab;
+    }
+
+
+    //this will return element from current tab
+    //example : if there are two tabs having  textarea with same id or same class name then when $("#someId") whill return both the text area from both tabs
+    //to take care this situation we need get the element from current tab.
+    function getElement(selector) {
+        var tabContentId = $currentTab.attr("href");
+        return $("" + tabContentId).find("" + selector);
+
+    }
+
+
+    function removeCurrentTab() {
+        var tabContentId = $currentTab.attr("href");
+        $currentTab.parent().remove(); //remove li of tab
+        $('#myTab a:last').tab('show'); // Select first tab
+        $(tabContentId).remove(); //remove respective tab content
+    }
+
+</script>
+<script>
+    Split(['#tab1', '#tab2'], {
+        sizes: [15, 85],
+        minSize: 150
+    });
+</script>
+<script type="application/javascript">
+    var terminals = new Object;
+    Terminal.applyAddon(fullscreen);
+    Terminal.applyAddon(fit);
+    Terminal.applyAddon(attach);
+    Terminal.applyAddon(zmodem);
+
+    function uploadfile(zsession) {
+        var uploadHtml = "<div>" +
+            "<label class='upload-area' style='width:100%;text-align:center;' for='fupload'>" +
+            "<input id='fupload' name='fupload' type='file' style='display:none;' multiple='true'>" +
+            "<i class='fa fa-cloud-upload fa-3x'></i>" +
+            "<br />" +
+            "Upload" +
+            "</label>" +
+            "<br />" +
+            "<span style='margin-left:5px !important;' id='fileList'></span>" +
+            "</div><div class='clearfix'></div>";
+
+        bootbox.dialog({
+            message: uploadHtml,
+            title: "File Upload",
+            buttons: {
+                success: {
+                    label: "Upload",
+                    className: "btn-success",
+                    callback: function (res) {
+                        // what you wanna do here ...
+                        console.log('success')
+                    }
+                },
+                cancel: {
+                    label: 'Cancel',
+                    className: 'btn-default',
+                    callback: function (res) {
+                        // what you wanna do here ...
+                        console.log('cancel')
+                    }
+                }
+            },
+            closeButton: false
+        });
+
+        // var fileList = ;
+        // fileList.addEventListener("change", function (e) {
+        //     var list = "";
+        //     for (var i = 0; i < this.files.length; i++) {
+        //         list += this.files[i].name
+        //     }
+        //
+        //     $("#fileList").text(list);
+        // }, false);
+        var file_el = document.getElementById("fupload");
+
+        function _hide_progress(){
+            console.log(11);
+        }
+
+        function _show_progress(){
+            console.log(222);
+        }
+
+        function _update_progress(xfer){
+            console.log(333,xfer);
+        }
+
+
+        var promise = new Promise( (res) => {
+            file_el.onchange = function(e) {
+                var files_obj = file_el.files;
+
+                    Zmodem.Browser.send_files(
+                        zsession,
+                        files_obj,
+                        {
+                            on_offer_response(obj, xfer) {
+                                if (xfer) _show_progress();
+                                console.log("offer", xfer ? "accepted" : "skipped");
+                            },
+                            on_progress(obj, xfer) {
+                                _update_progress(xfer);
+                            },
+                            on_file_complete(obj) {
+                                console.log("COMPLETE", obj);
+                               // _hide_progress();
+                            },
+                        }
+                    ).then(_hide_progress).then(
+                        zsession.close.bind(zsession),
+                        console.error.bind(console)
+                    ).then( () => {
+                        //_hide_file_info();
+                        //_hide_progress();
+                        res();
+                    } );
+            };
+        } );
+
+        return promise;
+    };
+
+    function make_terminal(element, size, ws_url, ip, id) {
+        var term = new Terminal({
+            cols: size.cols,
+            rows: size.rows,
+            screenKeys: true,
+            useStyle: true,
+            cursorBlink: true,  // Blink the terminal's cursor
+        });
+        term.open(element, false);
+        term.fit();
+        term.focus();
+        //term.toggleFullScreen(true);
+
+
+        function _save_to_disk(xfer, buffer) {
+            return Zmodem.Browser.save_to_disk(buffer, xfer.get_details().name);
+        };
+
+        function _handle_receive_session(zsession) {
+            zsession.on("offer", function(xfer) {
+                current_receive_xfer = xfer;
+
+                function on_form_submit() {
+                    var FILE_BUFFER = [];
+                    xfer.on("input", (payload) => {
+                        //_update_progress(xfer);
+                        FILE_BUFFER.push( new Uint8Array(payload) );
+                    });
+                    xfer.accept().then(
+                        () => {
+                            _save_to_disk(xfer, FILE_BUFFER);
+                        },
+                        console.error.bind(console)
+                    );
+                };
+
+                on_form_submit();
+
+            } );
+
+            var promise = new Promise( (res) => {
+                zsession.on("session_end", () => {
+                    res();
+                    console.log('session end');
+                } );
+            } );
+
+            zsession.start();
+
+            return promise;
+        };
+
+        var ws = new WebSocket(ws_url);
+
+        term.on("zmodemDetect", (detection) => {
+                term.detach();
+                let zsession = detection.confirm();
+
+                var promise;
+
+                if (zsession.type === "receive") {
+                    promise = _handle_receive_session(zsession);
+                }else {
+                    promise = uploadfile(zsession);
+                }
+
+                promise.catch( console.error.bind(console) ).then( () => {
+                    term.attach(ws);
+                } );
+        });
+
+        function resize_terminal(term) {
+            if (term) {
+
+                if ((document.documentElement.clientHeight - ($(".split-horizontal").height() - $("#"+element.id).height() + $(".leftMenu").height() + $(".navbar-static-top").height() -2 )) >= $(".split-horizontal").height()){
+                    var rows = parseInt($(".split-horizontal").height()/17)-2;
+                }else {
+                    var rows = parseInt((document.documentElement.clientHeight - 27 - $(".leftMenu").height() - $(".navbar-static-top").height() -2)/17);
+                }
+
+                //var rows = parseInt((document.documentElement.clientHeight - ($(".split-horizontal").height() - $("#"+element.id).height()) - $(".leftMenu").height() - $(".navbar-static-top").height() -2)/17);
+                var cols = parseInt($(".marginBottom").width()/9);
+                // console.log(rows,cols,size)
+                //console.log(rows,cols,(document.documentElement.clientHeight - ($(".split-horizontal").height() - $("#"+element.id).height() + $(".leftMenu").height() + $(".navbar-static-top").height() -2 )),$(".split-horizontal").height())
+                term.resize(cols, rows);
+                ws.send(JSON.stringify(["set_size",rows, cols, cols, rows]));
+            }
+        }
+
+        ws.onopen = function (event) {
+            terminals[element.id] = ws;
+            //set terminal width and height
+            //zmodem attach
+
+            //calculate terminal size
+
+            if ((document.documentElement.clientHeight - ($(".split-horizontal").height() - $("#"+element.id).height() + $(".leftMenu").height() + $(".navbar-static-top").height() -2 )) >= $(".split-horizontal").height()){
+                var rows = parseInt($(".split-horizontal").height()/17)-2;
+            }else {
+                var rows = parseInt((document.documentElement.clientHeight - 27 - $(".leftMenu").height() - $(".navbar-static-top").height() -2)/17)-2;
+            }
+            var cols = parseInt($(".marginBottom").width()/9);
+
+            term.resize(cols, rows);
+            ws.send(JSON.stringify(["ip", ip,cols, rows, id]));
+            ws.send(JSON.stringify(["set_size",rows, cols,
+                cols, rows]));
+
+            //set terminal fit resize function
+            // term.on('resize', function (size) {
+            //   ws.send(JSON.stringify(["set_size", size.rows, size.cols]));
+            // });
+
+            term.on('title', function (title) {
+                document.title = title;
+            });
+
+            //attach websocket to terminal
+            term.attach(ws);
+            term._initialized = true;
+
+            term.zmodemAttach(ws, {
+                noTerminalWriteOutsideSession: true,
+            } );
+
+            $(window).resize(function(){
+                if (term) {
+                    resize_terminal(term);
+                }
+            });
+        };
+
+        return {socket: ws, term: term};
+    }
+
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    var ws_path = ws_scheme + '://' + window.location.host + '/ws/';
+
+</script>
+<script type="application/javascript">
+    $("#server_list").jstree({
+        core: {
+            'themes': {
+                'name': 'proton',
+                'responsive': true
+            },
+            check_callback: !0,
+            data: [
+            {% for server_group in server_groups%}
+                {
+                    text: "{{ server_group.name }}",
+                    children: [
+                        {% for server in server_group.servers.all %}
+                            {
+                                text: "{{ server.name }} {{ server.ip }} {{ server.hostname }}",
+                                {% if server.credential.protocol == 'rdp' %}
+                                icon: "fa fa-windows",
+                                {% else %}
+                                icon: "fa fa-linux",
+                                {% endif %}
+                                ip: "{{ server.ip }}",
+                                id: "{{ server.getrandomid }}",
+                                oid: "{{ server.id }}",
+                                state: {selected: !0},
+                                hostname:"{{ server.hostname }}",
+                                protocol: "{{ server.credential.protocol }}",
+                                elementid: "{{ server.gethostname }}"
+                            },
+                        {% endfor %}
+                    ]
+                },
+            {% endfor %}
+            ]
+        },
+        types: {
+            "default": {icon: "fa fa-folder icon-state-warning icon-lg"},
+            file: {icon: "fa fa-file icon-state-warning icon-lg"}
+        },
+        state: {key: "demo2"},
+        plugins: ["contextmenu", "state", "types", "search", "sort"],
+        contextmenu: {
+            "items": function ($node) {
+                var tree = $("#server_list").jstree(true);
+                return {
+            {% if perms.common.can_connect_serverinfo %}
+                    "connect": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "{% trans 'connect' %}",
+                        "icon": "fa fa-play icon-state-warning icon-lg",
+                        "action": function (obj) {
+
+                            var tabtext = $node.text; //this is id on tab content div where the
+                            var tabId = $node.original.elementid;
+                            //get server ip
+                            var ip = $node.original.ip;
+                            var id = $node.original.oid;
+                            var protocol = $node.original.protocol;
+                            if (protocol == "ssh-password" || protocol == "ssh-key"){
+                                if ($("#"+tabId).length <= 0){
+                                    $('.nav-tabs').append('<li><a href="#' + tabId + '"><button class="close closeTab" type="button" >×</button>' + tabtext + '</a></li>');
+                                    $('.tab-content').append('<div class="tab-pane responsive" id="' + tabId + '"></div>');
+                                    showTab(tabId);
+                                    registerCloseEvent('ssh');
+                                    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+                                    var ws_path = ws_scheme + '://' + window.location.host + '/ws/';
+                                    make_terminal(document.getElementById(tabId), {rows: 43, cols: 90}, ws_path, ip, id);
+                                }else {
+                                    showTab(tabId);
+                                }
+                            }else{
+                                if ($("#"+tabId).length <= 0){
+                                    $('.nav-tabs').append('<li><a href="#' + tabId + '"><button class="close closeTab" type="button" >×</button>' + tabtext + '</a></li>');
+                                    <!--$('.tab-content').append('<div class="tab-pane responsive" id="' + tabId + '"></div>');-->
+                                    $('.tab-content').append('<div class="tab-pane responsive" id="' +tabId + '"><iframe src="/guacamole/' + id +'/" frameborder="0" style="width: 100%;" scrolling="no" onload="this.height=780;this.height=this.contentWindow.document.documentElement.scrollHeight;this.contentWindow.focus();" onmouseover="this.contentWindow.focus();"></iframe>'+ '</div>');
+                                    showTab(tabId);
+                                    registerCloseEvent('none');
+                                    <!--var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";-->
+                                    <!--var ws_path = ws_scheme + '://' + window.location.host + '/guacamole/'+id+"/";-->
+                                    <!--connect_guacamole(document.getElementById(tabId),ws_path);-->
+                                    toastr["warning"]("Rdp and vnc protocol can use left ctrl+shift+alt shortcut to use clipboard function!");
+                                }else {
+                                    showTab(tabId);
+                                }
+                            }
+
+                        }
+                    },{% endif %}
+                    "disconnect": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "{% trans 'disconnect' %}",
+                        "icon": "fa fa-remove icon-state-warning icon-lg",
+                        "action": function (obj) {
+                            var protocol = $node.original.protocol;
+                            if (protocol == "ssh-password" || protocol == "ssh-key") {
+                                if ($("#"+$node.text).length >0){
+                                    $.ajax({
+                                        type: "POST",
+                                        url: '{% url 'sshterminalkill' %}',
+                                        dataType: "json",
+                                        data: {'channel_name':$("#"+$node.text).attr('channel_name')},
+                                        success: function (data) {
+
+                                            if (data['status']){
+                                                toastr["success"](data['message']);
+                                            }
+                                        },
+                                        failure: function (errMsg) {
+                                            toastr["error"](errMsg);
+                                        },
+                                    });
+                                }
+                            }else {
+                                toastr["error"]("{% trans 'This function hasn\'t finished!' %}");
+                            };
+
+                        }
+                    },
+            {% if perms.common.can_filemanage_serverinfo %}
+                    "file_manager": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "{% trans 'file manager' %}",
+                        "icon": "fa fa-file icon-state-warning icon-lg",
+                        "action": function (obj) {
+                            var tabtext = $node.text; //this is id on tab content div where the
+                            //get server ip
+                            var ip = $node.original.ip;
+                            var tabId = $node.original.elementid;
+                            var protocol = $node.original.protocol;
+                            if (protocol == "ssh-password" || protocol == "ssh-key") {
+                                if ($("#"+tabId + "_file_manager").length <= 0){
+                                    $('.nav-tabs').append('<li><a href="#' + tabId + "_file_manager" + '"><button class="close closeTab" type="button" >×</button>' + tabtext + ' file manager' + '</a></li>');
+                                    $('.tab-content').append('<div class="tab-pane responsive" id="' + tabId + '_file_manager' + '"></div>');
+                                    showTab(tabId+'_file_manager');
+                                    registerCloseEvent('none');
+                                    file_manager(tabId,$node.original.oid);
+                                }else {
+                                    showTab(tabId+'_file_manager');
+
+                                }
+                            } else if (protocol == "rdp" ) {
+                                if ($("#"+tabId + "_file_manager").length <= 0){
+                                    $('.nav-tabs').append('<li><a href="#' + tabId + "_file_manager" + '"><button class="close closeTab" type="button" >×</button>' + tabtext + ' file manager' + '</a></li>');
+                                    $('.tab-content').append('<div class="tab-pane responsive" id="' + tabId + '_file_manager' + '"></div>');
+                                    showTab(tabId+'_file_manager');
+                                    registerCloseEvent('none');
+                                    rdp_file_manager(tabId,$node.original.oid);
+                                }else {
+                                    showTab(tabId+'_file_manager');
+                                }
+                            }else{
+                                toastr["error"]("{% trans 'This function hasn\'t finished!' %}");
+                            }
+                        }
+                    },{% endif %}
+//                    "Create": {
+//                        "separator_before": false,
+//                        "separator_after": false,
+//                        "label": "Create",
+//                        "action": function (obj) {
+//                            $node = tree.create_node($node);
+//                            tree.edit($node);
+//                        }
+//                    },
+//                        "Remove": {
+//                            "separator_before": false,
+//                            "separator_after": false,
+//                            "label": "delete",
+//                            "action": function (obj) {
+//                                tree.delete_node($node);
+//                            }
+//                        },
+                };
+            }
+        }
+    }).on('show_contextmenu.jstree', function(e, reference, element) {
+        if ( reference.node.parents.length < 2 ) {
+            $('.vakata-context').remove();
+        }
+    }).on('select_node.jstree', function (e, data) {
+        setTimeout(function() {
+            data.instance.show_contextmenu(data.node)
+        }, 100);
+    });
+
+    $("#search").submit(function(e) {
+        e.preventDefault();
+        $("#server_list").jstree(true).search($("#q").val());
+    });
+
+    function file_manager(tabId,id) {
+        var elemetid = '#'+tabId+'_file_manager';
+        var url = '/elfinder/yawd-connector/sftp/'+id+'/';
+        elfinderinit(elemetid,url);
+        }
+
+    function rdp_file_manager(tabId,id) {
+            var elemetid = '#'+tabId+'_file_manager';
+            var url = "/elfinder/yawd-connector/default/roots/";
+            elfinderinit(elemetid,url);
+        }
+
+    function elfinderinit(elemetid,url){
+        var loct = window.location.search,
+            full_lng, locm, lng;
+            // detect language
+        if (loct && (locm = loct.match(/lang=([a-zA-Z_-]+)/))) {
+                full_lng = locm[1];
+        } else {
+                full_lng = (navigator.browserLanguage || navigator.language || navigator.userLanguage);
+        }
+        lng = full_lng.substr(0,2);
+        if (lng == 'ja') lng = 'jp';
+        else if (lng == 'pt') lng = 'pt_BR';
+        else if (lng == 'zh') lng = (full_lng.substr(0,5) == 'zh-tw')? 'zh_TW' : 'zh_CN';
+        $(elemetid).elfinder({
+                resizable: false,
+                height: '100%',
+                url : url, // connector URL (REQUIRED)
+                lang: lng,                   // language (OPTIONAL)
+                <!--uploadMaxChunkSize: 124445261824,-->
+                soundPath: "{% static '/elfinder/sounds' %}",
+                baseUrl : "{% static 'elfinder/' %}",
+                commandsOptions: {
+                    edit: {
+                        editors : [
+                            {
+                                // ACE Editor
+                                // `mimes` is not set for support everything kind of text file
+                                info : {
+                                    name : '{% trans 'edit' %}',
+                                },
+                                load : function(textarea) {
+                                    var self = this,
+                                        dfrd = $.Deferred(),
+                                        cdn  = '{% static "plugins/ace" %}',
+                                        init = function() {
+                                            start();
+                                        },
+                                        start = function() {
+                                            var editor, editorBase, mode,
+                                            ta = $(textarea),
+                                            taBase = ta.parent(),
+                                            dialog = taBase.parent(),
+                                            id = textarea.id + '_ace',
+                                            ext = self.file.name.replace(/^.+\.([^.]+)|(.+)$/, '$1$2').toLowerCase(),
+                                            // MIME/mode map
+                                            mimeMode = {
+                                                'text/x-php'              : 'php',
+                                                'application/x-php'       : 'php',
+                                                'text/html'               : 'html',
+                                                'application/xhtml+xml'   : 'html',
+                                                'text/javascript'         : 'javascript',
+                                                'application/javascript'  : 'javascript',
+                                                'text/css'                : 'css',
+                                                'text/x-c'                : 'c_cpp',
+                                                'text/x-csrc'             : 'c_cpp',
+                                                'text/x-chdr'             : 'c_cpp',
+                                                'text/x-c++'              : 'c_cpp',
+                                                'text/x-c++src'           : 'c_cpp',
+                                                'text/x-c++hdr'           : 'c_cpp',
+                                                'text/x-shellscript'      : 'sh',
+                                                'application/x-csh'       : 'sh',
+                                                'text/x-python'           : 'python',
+                                                'text/x-java'             : 'java',
+                                                'text/x-java-source'      : 'java',
+                                                'text/x-ruby'             : 'ruby',
+                                                'text/x-perl'             : 'perl',
+                                                'application/x-perl'      : 'perl',
+                                                'text/x-sql'              : 'sql',
+                                                'text/xml'                : 'xml',
+                                                'application/docbook+xml' : 'xml',
+                                                'application/xml'         : 'xml'
+                                            };
+
+                                            // set basePath of ace
+                                            ace.config.set('basePath', cdn);
+
+                                            // set base height
+                                            taBase.height(taBase.height());
+
+                                            // detect mode
+                                            mode = ace.require('ace/ext/modelist').getModeForPath('/' + self.file.name).name;
+                                            if (mode === 'text') {
+                                                if (mimeMode[self.file.mime]) {
+                                                    mode = mimeMode[self.file.mime];
+                                                }
+                                            }
+
+                                            // show MIME:mode in title bar
+                                            taBase.prev().children('.elfinder-dialog-title').append(' (' + self.file.mime + ' : ' + mode.split(/[\/\\]/).pop() + ')');
+
+                                            // TextArea button and Setting button
+                                            $('<div class="ui-dialog-buttonset"/>').css('float', 'left')
+                                            .append(
+                                                $('<button>{% trans 'TextArea' %}</button>')
+                                                .button()
+                                                .on('click', function(){
+                                                    if (ta.data('ace')) {
+                                                        ta.removeData('ace');
+                                                        editorBase.hide();
+                                                        ta.val(editor.session.getValue()).show().focus();
+                                                        $(this).text('{% trans 'AceEditor' %}');
+                                                    } else {
+                                                        ta.data('ace', true);
+                                                        editorBase.show();
+                                                        editor.setValue(ta.hide().val(), -1);
+                                                        editor.focus();
+                                                        $(this).text('{% trans 'TextArea' %}');
+                                                    }
+                                                })
+                                            )
+                                            .append(
+                                                $('<button>{% trans "Ace editor setting" %}</button>')
+                                                .button({
+                                                    icons: {
+                                                        primary: 'ui-icon-gear',
+                                                        secondary: 'ui-icon-triangle-1-e'
+                                                    },
+                                                    text: false
+                                                })
+                                                .on('click', function(){
+                                                    editor.showSettingsMenu();
+                                                })
+                                            )
+                                            .prependTo(taBase.next());
+
+                                            // Base node of Ace editor
+                                            editorBase = $('<div id="'+id+'" style="width:100%; height:100%;"/>').text(ta.val()).insertBefore(ta.hide());
+
+                                            // Ace editor configure
+                                            ta.data('ace', true);
+                                            editor = ace.edit(id);
+                                            ace.require('ace/ext/language_tools');
+                                            ace.require('ace/ext/settings_menu').init(editor);
+                                            editor.$blockScrolling = Infinity;
+                                            editor.setOptions({
+                                                theme: 'ace/theme/monokai',
+                                                mode: 'ace/mode/' + mode,
+                                                fontSize: '14px',
+                                                wrap: true,
+                                                enableBasicAutocompletion: true,
+                                                enableSnippets: true,
+                                                enableLiveAutocompletion: false
+                                            });
+                                            editor.commands.addCommand({
+                                                name : "{% trans 'saveFile' %}",
+                                                bindKey: {
+                                                    win : 'Ctrl-s',
+                                                    mac : 'Command-s'
+                                                },
+                                                exec: function(editor) {
+                                                    self.doSave();
+                                                }
+                                            });
+                                            editor.commands.addCommand({
+                                                name : "{% trans 'closeEditor' %}",
+                                                bindKey: {
+                                                    win : 'Ctrl-w|Ctrl-q',
+                                                    mac : 'Command-w|Command-q'
+                                                },
+                                                exec: function(editor) {
+                                                    self.doCancel();
+                                                }
+                                            });
+
+                                            editor.resize();
+
+                                            dfrd.resolve(editor);
+                                        };
+
+                                    // init & start
+                                    init();
+
+                                    return dfrd;
+                                },
+                                close : function(textarea, instance) {
+                                    if (instance) {
+                                        instance.destroy();
+                                        $(textarea).show();
+                                    }
+                                },
+                                save : function(textarea, instance) {
+                                    instance && $(textarea).data('ace') && (textarea.value = instance.session.getValue());
+                                },
+                                focus : function(textarea, instance) {
+                                    instance && $(textarea).data('ace') && instance.focus();
+                                },
+                                resize : function(textarea, instance, e, data) {
+                                    instance && instance.resize();
+                                }
+                            }
+                        ]
+                    }
+                }
+            });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+
+{%  extends  'layout.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %} {{ title }}{% endblock %}
+{% block content %}
+<div class="row">
+
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>{{ title }}</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <form method="post" novalidate id="omsform"> {% csrf_token %}
+                                {%  for field in  form %}
+                                <div class="form-group  row"><label class="col-sm-3 col-form-label">{{ field.label }}</label>
+                                    <div class="col-sm-9">
+                                        {{ field }}
+                                    {% if field.help_text %}
+                                    <span style="color:green" class="form-text m-b-none" >{{ field.help_text }}</span>
+                                    {% elif  field.errors %}
+                                    <span style="color:red" class="form-text m-b-none" >{{ field.errors.0}}</span>
+                                    {% endif %}
+                                    </div>
+                                </div>
+                                <div class="hr-line-dashed"></div>
+                                {% endfor %}
+                                <div class="form-group row">
+                                    <div class="col-sm-4 col-sm-offset-2">
+                                        <button class="btn btn-primary btn-sm" type="submit">Save changes</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock %}
+{% block custom_css %}
+    <link href="/static/css/plugins/select2/select2.min.css" rel="stylesheet">
+    {{ form.media }}
+    <style>
+        #omsform ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #omsform ul li {
+            float: left;
+            padding: 10px;
+            padding-left: 0;
+            width: 80px;
+        }
+
+        #omsform ul li i {
+            font-size: 18px;
+            margin-left: 5px;
+            color: #6d6565;
+        }
+        </style>
+{% endblock %}
+
+{% block custom_js %}
+<script src="/static/js/plugins/select2/select2.full.min.js"></script>
+    <script>
+        $(function () {
+            $('.select2').select2({
+                allowClear: true
+            });
+        })
+        </script>
+        <script>
+    $(document).ready(function () {
+        var p = $('#id_password').parent().parent();
+        var k = $('#id_key').parent().parent();
+        k.hide();
+        p.show();
+    $("#id_auth_method").change(function(){
+        var auth = $('#id_auth_method option:selected');
+        var v = auth.val();
+        if (v === 'ssh-key') {
+            p.hide();
+            k.show();
+        } else if (v === 'ssh-password') {
+            k.hide();
+            p.show();
+        }
+
+    });
+
+
+
+})
+    </script>
+
+{% endblock %}

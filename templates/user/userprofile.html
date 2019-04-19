@@ -1,0 +1,127 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+        <div class="col-md-3">
+
+                    <div class="profile-image">
+                        <iframe id='frameFile' name='frameFile' style='display: none;'></iframe>
+                    <form class="clearfix" id="jsAvatarForm" enctype="multipart/form-data" autocomplete="off" method="post" action="{% url 'user:user_profile' %}" target='frameFile'>
+                        <label class="changearea" for="avatarUp">
+                            <span id="avatardiv" class="pic">
+                                <img class="rounded-circle circle-border m-b-md js-img-show" alt="profile" id="avatarShow" src="{{ MEDIA_URL }}{{ request.user.image }}"/>
+                            </span>
+
+                                <span class="btn btn-primary btn-block" id="jsAvatarBtn">修改头像</span>
+                                <input type="file" name="image" id="avatarUp" class="sr-only js-img-up"/>
+                        </label>
+                        {% csrf_token %}
+                    </form>
+                    </div>
+                    <div class="profile-info">
+                        <div class="">
+                            <div>
+                                <h2 class="no-margins">
+                                    {{ user.name }}
+                                </h2>
+                                <h4>手机：{{ user.mobile|default:'' }}</h4>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+        <div class="col-md-9">xxxxx</div>
+    </div>
+    </div>
+{% endblock %}
+{%  block custom_js %}
+    <script type="text/javascript">
+    jQuery.browser = {};
+    (function () {
+        jQuery.browser.msie = false;
+        jQuery.browser.version = 0;
+        if (navigator.userAgent.match(/MSIE ([0-9]+)\./)) {
+            jQuery.browser.msie = true;
+            jQuery.browser.version = RegExp.$1;
+        }
+    })();
+</script>
+    <script>
+
+    $(function(){
+    //个人资料头像
+    $('.js-img-up').uploadPreview(
+        { Img: ".js-img-show" ,
+        Callback:function(){
+        $('#jsAvatarForm').submit();
+    }});
+
+
+});
+    jQuery.fn.extend({
+    uploadPreview: function (opts) {
+        $(this).each(function(){
+             var _self = this,
+                _this = $(this);
+            opts = jQuery.extend({
+                Img: "ImgPr",
+                Width: 100,
+                Height: 100,
+                ImgType: ["gif", "jpeg", "jpg", "bmp", "png"],
+                Callback: function () {}
+            }, opts || {});
+            _self.getObjectURL = function (file) {
+                var url = null;
+                if (window.createObjectURL != undefined) {
+                    url = window.createObjectURL(file)
+                } else if (window.URL != undefined) {
+                    url = window.URL.createObjectURL(file)
+                } else if (window.webkitURL != undefined) {
+                    url = window.webkitURL.createObjectURL(file)
+                }
+                return url
+            };
+            _this.change(function () {
+                if (this.value) {
+                    if (!RegExp("\.(" + opts.ImgType.join("|") + ")$", "i").test(this.value.toLowerCase())) {
+                        alert("选择文件错误,图片类型必须是" + opts.ImgType.join("，") + "中的一种");
+                        this.value = "";
+                        return false
+                    }
+                    var obj = _this.parent().siblings().children(opts.Img),
+                        imgBox = obj.parent("span"),
+                        imgBoxDom = imgBox[0];
+                    if ($.browser.msie) {
+                        try {
+                            obj.attr('src', _self.getObjectURL(this.files[0]))
+                        } catch (e) {
+                            var src = "";
+                            _self.select();
+                            if (top != self) {
+                                window.parent.document.body.focus()
+                            } else {
+                                _self.blur()
+                            }
+                            src = document.selection.createRange().text;
+                            document.selection.empty();
+                            obj.hide();
+                            imgBox.css({
+                                'filter': 'progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale)',
+                                'width': opts.Width + 'px',
+                                'height': opts.Height + 'px'
+                            });
+                            imgBoxDom.filters.item("DXImageTransform.Microsoft.AlphaImageLoader").src = src
+                        }
+                    } else {
+                        obj.attr('src', _self.getObjectURL(this.files[0]))
+                    }
+                    opts.Callback()
+                }
+            });
+        });
+    }
+});
+    </script>
+{% endblock %}

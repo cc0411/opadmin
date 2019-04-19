@@ -1,0 +1,188 @@
+{% extends 'layout.html' %}
+{% load rbac %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5>{{ title }}</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>主机名</th>
+                                    <th>服务器IP</th>
+                                    <th>开始时间</th>
+                                    <th>是否结束</th>
+{% if request|has_permission:'webssh:sshlogplay' or request|has_permission:'webssh:sshterminalkill' or request|has_permission:'webssh:sshterminalmonitor' or request|has_permission:'webssh:commandlog_list' %}
+                                    <th>操作</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {%  for log in  all_logs.object_list %}
+                                <tr>
+                                    <td>{{ log.id }}</td>
+                                    <td>{{ log.user.username}}</td>
+                                    <td>{{ log.server.hostname}}</td>
+                                    <td>{{ log.server.wip }}</td>
+                                    <td>{{ log.start_time }}</td>
+                                    <td>{{ log.is_finished}}</td>
+                                    <td class="text-navy">
+                                    {% if log.is_finished %}
+                                        {%  if request|has_permission:'webssh:sshlogplay' %}
+                                    <button type="button" class="btn btn-xs btn-primary play" data-toggle="modal" data-target="#play" onclick="play('{{log.user.username}}','{{log.server.wip}}','{{log.start_time}}','{% url 'webssh:sshlogplay' log.id %}');">播放</button>
+                                            {%  endif %}
+                                    {% else %}
+                                        {%  if request|has_permission:'webssh:sshterminalkill' %}
+                                    <button type="button" class="btn btn-xs btn-danger" onclick="kill('{{log.channel}}','{{log.user.username}}')">停止</button>
+                                    {%  endif %}
+                                            {%  if request|has_permission:'webssh:sshterminalmonitor' %}
+                                    <button type="button" class="btn btn-xs btn-danger" onclick="monitor('{{log.user.username}}','{{log.server.wip}}','{{log.start_time}}','{% url 'webssh:sshterminalmonitor' log.id %}')">监控</button>
+                                                {%  endif %}
+                                    {% endif %}
+                                    {%  if request|has_permission:'webssh:commandlog_list' %}
+                                    <button type="button" class="btn btn-xs btn-warning" onclick="get_commands_detail('{{log.id}}')">命令列表</button>
+                                    {%  endif %}
+
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="pageturn">
+                 <ul class="pagelist">
+          {% if all_logs.has_previous %}
+            <li class="long"><a href="?{{ all_logs.previous_page_number.querystring }}">上一页</a></li>
+        {% endif %}
+
+        {% for page in all_logs.pages %}
+            {% if page %}
+                {% ifequal page all_logs.number %}
+                    <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                {% else %}
+                    <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                {% endifequal %}
+            {% else %}
+                <li class="none"><a href="">...</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if all_logs.has_next %}
+            <li class="long"><a href="?{{ all_logs.next_page_number.querystring }}">下一页</a></li>
+        {% endif %}
+    </ul>
+</div>
+            </div>
+        </div>
+
+
+{% endblock %}
+{% block custom_css %}
+<link rel="stylesheet" href="/static/bootstrap-dialog/css/bootstrap-dialog.css">
+<link rel="stylesheet" type="text/css" href="/static/css/plugins/sweetalert/sweetalert.css">
+{% endblock %}
+{% block custom_js %}
+
+    <script src="/static/js/bootstrap-show-modal.js"></script>
+    <script src="/static/bootstrap-dialog/js/bootstrap-dialog.js"></script>
+    <script src="/static/bootbox/bootbox.js"></script>
+    <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
+
+    <script>
+    function play(user,ip,start_time,url){
+        var div_username = ' user: '+'<span class="text-info">'+user+'</span>';
+        var div_ip = ' server: '+'<span class="text-info">' + ip + '</span>';
+        var div_time = ' start time: ' + '<span class="text-info">'+start_time +'</span>';
+        var title = div_username + div_ip + div_time;
+        $.showModal({
+            title: title,
+            {#message:$('<div style="overflow: auto;background-color: rgba(0, 0, 0, 0);"></div>').load(url),#}
+            body:'<div style="overflow: auto;background-color: rgba(0, 0, 0, 0);"><iframe src='+url+' width="100%" scrolling="auto" frameborder="0" ></iframe></div>'
+        });
+    }
+    function kill(channel_name,user_name) {
+         $.ajaxSetup({headers: {"X-CSRFToken": '{{ csrf_token }}'}});
+        swal({
+            title:'你确定注销' + user_name +'登录的终端吗？',
+            text:"注销后将无法恢复",
+            type:'warning',
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "确定",
+            closeOnConfirm: false
+        },
+            function () {
+              $.ajax({
+                    type: "POST",
+                    url: '{% url 'webssh:sshterminalkill' %}',
+                    dataType: "json",
+                    data: {'channel_name':channel_name},
+                    success: function (data) {
+                        if (data['status']){
+                            swal({title: "删除", text: "已停止", type: "success"}, function () {
+                                        window.location.reload();
+                            })
+                        }else{
+                            swal({title:'fail',text:'取消操作',type:'error'})
+                        }
+                    },
+                });
+            }
+        );
+}
+    function monitor(user,ip,start_time,url){
+        var div_username = ' user: '+'<span class="text-info">'+user+'' + '</span>';
+        var div_ip = ' server: '+'<span class="text-info">' + ip + '</span>';
+        var div_time = ' start time: ' + '<span class="text-info">'+start_time +'</span>';
+        var title = div_username + div_ip + div_time;
+        $.showModal({
+            title: title,
+            {#message:$('<div style="overflow: auto;background-color: rgba(0, 0, 0, 0);"></div>').load(url),#}
+           body:'<div style="overflow: auto;background-color: rgba(0, 0, 0, 0);"><iframe src='+url+' width="100%" scrolling="auto" frameborder="0" ></iframe></div>'
+        });
+        return false;
+    }
+    function get_commands_detail(id) {
+     $.ajaxSetup({headers: {"X-CSRFToken": '{{ csrf_token }}'}});
+    var dialog = bootbox.dialog({
+        title: '命令列表',
+        message: '<p><i class="fa fa-spin fa-spinner"></i> 加载中</p>'
+    });
+    dialog.init(function(){
+        $.ajax({
+            url: '{% url 'webssh:commandlog_list' %}',
+            type: 'POST',
+            data: {'id':id},
+            success: function(data, textStatus, jqXHR) {
+                if(data.status){
+                    dialog.find('.modal-body').css("height","300px").css("overflow-y","scroll").css("font-size","16px");
+                    var html = "";
+                    var data = data.message;
+                    for ( var i=0; i<data.length; i++ ) {
+                        html += data[i].datetime + " :  " + data[i].command  +"</br>"
+                    }
+                    dialog.find('.bootbox-body').html(html);
+                } else {
+                   toastr['error'](data.message);
+                }
+            },
+            error: function(data, textStatus, jqXHR) {
+                toastr['error'](data);
+            }
+        });
+    });
+}
+    </script>
+{% endblock %}
