@@ -1,153 +1,195 @@
-{% extends 'layout.html' %}
-{% block title %}{{ title }}{% endblock %}
-{% block page_title %}{{ title }}{% endblock %}
-{% block content %}
-<div class="wrapper wrapper-content animated fadeInRight">
+{% extends 'layout.html'%}
+{% load rbac %}
+{% block page_title %}服务器{% endblock %}
+{% block page %}服务器{% endblock %}
+{% block custom_css %}
+    <link rel="stylesheet" href="/static/bootstrap-table/css/bootstrap-table.css">
 
-            <div class="row">
+
+{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
                 <div class="col-lg-12">
                     <div class="ibox ">
                         <div class="ibox-title">
-                            <h5>{{ title }}</h5>
+                            <h5>服务器</h5>
                         </div>
                         <div class="ibox-content">
-                        {% load rbac %}
+                        <div class="btn-group hidden-xs" id="asset-list-table-Toolbar" role="group">
                             {% if request|has_permission:'host:host_add' %}
-                            <div style="margin-bottom: 10px">
-                                <a href="{% url    'host:host_add' %}" class="btn btn-sm btn-primary ">添加主机</a>
-                            </div>
-                            {%  endif %}
-                            <table class="table table-hover">
-                                <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>主机名</th>
-                                    <th>类型</th>
-                                    <th>WIP</th>
-                                    <th>NIP</th>
-                                    <th>状态</th>
-                                    <th>CPU/cpus</th>
-                                    <th>内存/G</th>
-                                    <th>硬盘/G</th>
-                                    <th>创建时间</th>
-                                    {% if request|has_permission:'host:host_update' or request|has_permission:'host:host_delete' or request|has_permission:'webssh:sshconnect' or request|has_permission:'webssh:filemanage' or request|has_permission:'webssh:dynamicpassword' %}
-                                    <th>操作</th>
-                                    {% endif %}
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {%  for host in  all_hosts.object_list %}
-
-                                <tr>
-                                    <td>{{ host.id }}</td>
-                                    <td>{{ host.hostname }}</td>
-                                    <td>{{ host.get_server_type_display }}</td>
-                                    <td>{{ host.wip }}</td>
-                                    <td>{{ host.nip }}</td>
-                                    <td>{%  ifequal  host.status  'online' %}
-                                        <span style="color: green">{{ host.get_status_display }}</span>
-                                    {% endifequal %}
-                                    {%  ifequal  host.status  'offline' %}
-                                        <span style="color: red">{{ host.get_status_display }}</span>
-                                    {% endifequal %}
-                                    </td>
-                                    <td>{{ host.cpu_info |default_if_none:''}}</td>
-                                    <td>{{ host.memory|default_if_none:'' }}</td>
-                                    <td>{{ host.disk|default_if_none:''  }}</td>
-                                    <td>{{ host.ctime }}</td>
-                                    <td class="text-navy">
-                                        {%  if request|has_permission:'host:host_update' %}
-                                <a class="btn btn-xs btn-info" href="{% url 'host:host_update' host.id %}">更新</a>
-                                        {%  endif %}
-                                    {%  if request|has_permission:'webssh:sshconnect' %}
-                                    <a class="btn btn-xs btn-success" href="{% url 'webssh:sshconnect' host.wip  host.id%}">连接</a>
-                                    {%  endif %}
-                                    {%  if request|has_permission:'webssh:filemanage' %}
-                                    <a class="btn btn-xs btn-success" href="{% url 'webssh:filemanage' host.wip  host.id%}">文件管理</a>
-                                    {%  endif %}
-                                    {%  if request|has_permission:'webssh:dynamicpassword' %}
-                                    <button type="button" class="btn btn-xs btn-warning" onclick="connecttosshserver({{host.id}})">putty</button>
-                                    {%  endif %}
-                                    {%  if request|has_permission:'host:host_delete' %}
-                                <a class="btn btn-xs btn-danger" href="{% url 'host:host_delete'  host.id %}">删除主机</a>
-                                    {%  endif %}
-
-                                </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-
+                                    <a href="{% url 'host:host_add' %}" class="btn btn-sm btn-default">
+                                        <i class="glyphicon glyphicon-plus" aria-hidden="true"></i>添加主机
+                                    </a>
+                            {% endif %}
+                                </div>
+                        <table id="asset-list-table-events"
+                               class="table  table-hover"
+                               data-url="{% url 'host:assetjson' %}"
+                               data-method="get"
+                               data-pagination="true"
+                               data-side-pagination="server"
+                               data-page-list="[10, 20, 50, 100, ALL]"
+                               data-pagination-h-align="left"
+                               data-pagination-detail-h-align="right"
+                               data-pagination-pre-text="上一页"
+                               data-pagination-next-text="下一页"
+                               data-pagination-loop="false"
+                               data-toolbar="#asset-list-table-Toolbar"
+                               data-search="true"
+                               data-select-item-name="id"
+                               data-search-on-enter-key="true"
+                               data-show-refresh="true"
+                               data-show-columns="true"
+                               data-show-export="true"
+                               data-page-size=20
+                               data-unique-id="id"
+                               data-buttons-class="primary"
+                               data-icons-prefix="glyphicon"
+                               data-icons="icons"
+                               data-icon-aria-hidden="true"
+                            data-query-params="queryParams"
+                            data-detail-view="true"
+                            data-detail-formatter="detailFormatter">
+                        </table>
                         </div>
                     </div>
                 </div>
-                <div class="pageturn">
-                 <ul class="pagelist">
-          {% if all_hosts.has_previous %}
-            <li class="long"><a href="?{{ all_hosts.previous_page_number.querystring }}">上一页</a></li>
-        {% endif %}
-
-        {% for page in all_hosts.pages %}
-            {% if page %}
-                {% ifequal page all_hosts.number %}
-                    <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
-                {% else %}
-                    <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
-                {% endifequal %}
-            {% else %}
-                <li class="none"><a href="">...</a></li>
-            {% endif %}
-        {% endfor %}
-        {% if all_hosts.has_next %}
-            <li class="long"><a href="?{{ all_hosts.next_page_number.querystring }}">下一页</a></li>
-        {% endif %}
-    </ul>
-</div>
             </div>
-        </div>
-
+    </div>
 
 {% endblock %}
+{% block custom_js %}
+    <script src="/static/bootstrap-table/js/tableExport.min.js"></script>
+    <script src="/static/bootstrap-table/js/bootstrap-table.min.js"></script>
+    <script src="/static/bootstrap-table/js/bootstrap-table-zh-CN.min.js"></script>
+    <script src="/static/bootstrap-table/extensions/export/bootstrap-table-export.min.js"></script>
 
-{%  block  custom_css %}
-    <link rel="stylesheet" type="text/css" href="/static/elfinder/css/elfinder.min.css">
-{% endblock %}
-
-{% block custom_js%}
-    <!-- elFinder JS (REQUIRED) -->
-<script src="/static/elfinder/js/elfinder.min.js"></script>
-<!--Ace Editor -->
-<script type="text/javascript" src="/static/ace/ace.js"></script>
-<script type="text/javascript" src="/static/ace/ext-modelist.js"></script>
-<script type="text/javascript" src="/static/ace/ext-settings_menu.js"></script>
-<script type="text/javascript" src="/static/ace/ext-language_tools.js"></script>
-<!--split.js-->
-<script type="text/javascript" src="/static/split.js/split.min.js"></script>
     <script>
-        function connecttosshserver(serverid){
-        $.ajax({
-         type: "POST",
-         url: "{% url 'webssh:dynamicpassword' %}",
-         data: {"serverid":serverid},
-         dataType: "json",
-         success: function (data) {
-                if (data.status){
-                    var sshserver_address = window.location.hostname;
-                    var user_pass_dict = data.message;
-                    var sshserver_remote_port = 2100;
-                    var username = user_pass_dict.username;
-                    var temp_pass = user_pass_dict.password;
-                    var ssh_protocol_path = "ssh://"+sshserver_address+"#"+sshserver_remote_port+"#"+username+"#"+temp_pass;
-                    window.location.href = ssh_protocol_path
+        var $table = $('#asset-list-table-events');
+        function initTable() {
+            $table.bootstrapTable('destroy').bootstrapTable({
+            columns:[[{
+            field:'state',
+            checkbox:true,
+            aligin:'center'
+            },
+            {field:'id',
+            title:'ID',
+            sortable:true,
+            },
+            {field:'wip',
+            title:'外网地址',
+            sortable: true,
+            },
+            {field:'nip',
+            title:'内网地址',
+            sortable:true
+            },
+            {field:'hostname',
+            title:'主机名'},
+            {field:'server_type',
+            title:'主机类型',
+            formatter:function (value,row,index) {
+                if(row['server_type']==='physical'){
+                    return '<span style="color:#c0dbff">物理机</span>';
                 }
-         },
-         failure: function (errMsg) {
-             toastr["error"](errMsg);
-         }
-     });
-    }
-</script>
-{%  endblock %}
+                if(row['server_type']==='virtual'){
+                    return '<span style="color:#19ddff">虚拟机</span>';
+                }
+                if(row['server_type']==='instance'){
+                    return '<span style="color:#f06292">云主机</span>';
+                }
+            }
+            },
+            {field:'status',
+            title:'状态',
+            formatter:function (value,row,index) {
+                if (row['status']==='online'){
+                    return '<span style="color:green">上线</span>';
+                }
+                if (row['status']==='offline'){
+                    return '<span style="color:red">下线</span>';
+                }
+            }
+
+            },
+            {field:'cpu',
+            title:'CPU'
+            },
+            {field:'memory',
+            title:'内存'
+            },
+            {field:'disk',
+            title:'硬盘'},
+            {field:'os',
+            title:'操作系统'
+            },
+            {field:'ctime',
+            title:'创建时间'},
+            {% if request|has_permission:'host:host_update' or request|has_permission:'host:host_delete' or request|has_permission:'webssh:sshconnect' or request|has_permission:'webssh:filemanage' or request|has_permission:'webssh:dynamicpassword' %}
+            {field:'operate',
+            title:'操作',
+            align: 'center',
+            formatter:"operateFormatter"
+            }
+            {% endif %}
+            ]],
+            queryParams: function (params) {
+            return {
+                offset: params.offset,  //页码
+                limit: params.limit,   //页面大小
+                search : params.search, //搜索
+                order : params.order, //排序
+                sort : params.sort, //排序
+            };
+        },
+                }
+            )
+        }
+        window.icons = {
+            refresh: 'glyphicon-refresh',
+            columns: 'glyphicon-list',
+            export: 'glyphicon-download',
+            detailOpen: 'glyphicon-plus',
+            detailClose:'glyphicon-minus',
+        };
+        function detailFormatter(index, row) {
+    var html = []
+    $.each(row, function (key, value) {
+      html.push('<p><b>' + key + ':</b> ' + value + '</p>')
+    })
+    return html.join('')
+  }
+  function operateFormatter(value,row,index){
+            return [
+                {%  if request|has_permission:'host:host_update' %}
+                '<a class="btn btn-xs btn-info" href="/host/host/update/'+row['id']+'/"><i class="fa fa-edit"></i></a>',
+                {% endif %}
+                {%  if request|has_permission:'webssh:sshconnect' %}
+                '<a class="btn btn-xs btn-default" href="/webssh/sshconnect/'+row['wip']+'/'+row['id']+'/"><i class="fa fa-linux"></i></a>',
+                {%  endif %}
+                {%  if request|has_permission:'webssh:filemanage' %}
+                '<a class="btn btn-xs btn-default" href="/webssh/filemanage/'+row['wip']+'/'+row['id']+'/"><i class="fa fa-folder-open"></i></a>',
+                {%  endif %}
+                {%  if request|has_permission:'host:host_delete' %}
+                '<a class="btn btn-xs btn-danger" href="/host/host/delete/'+row['id']+'/"><i class="fa fa-trash"></i></a>'
+                {%  endif %}
+                        ].join('')
+  }
+        $(function(){initTable()})
 
 
 
 
+
+
+
+
+
+
+
+
+    </script>
+{% endblock %}

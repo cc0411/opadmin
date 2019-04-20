@@ -8,15 +8,22 @@ from pure_pagination import PageNotAnInteger,EmptyPage,Paginator
 from django.db.models import Q
 from django.core.urlresolvers import reverse_lazy
 from django.http import FileResponse
+from django.core.paginator import Paginator as P2
 import  xlrd
 import os
+import json
 from opadmin import settings
+from datetime import date
+from datetime import datetime
 import  mimetypes
 import logging
+
 logger = logging.getLogger(__name__)
 
-class HostListView(LoginRequiredMixin,ListView):
-    template_name =  'host/hosts.html'
+
+class HostListView2(LoginRequiredMixin,ListView):
+    '''已废弃'''
+    template_name =  'host/hosts2.html'
     model = Hosts
     context_object_name = 'all_hosts'
     queryset = Hosts.objects.all()
@@ -42,9 +49,70 @@ class HostListView(LoginRequiredMixin,ListView):
         self.queryset = p.page(page)
         return self.queryset
     def get_context_data(self, **kwargs):
-        context = super(HostListView,self).get_context_data()
+        context = super(HostListView2,self).get_context_data()
         context['title'] = '主机列表'
         return  context
+
+class CJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj, date):
+            return obj.strftime("%Y-%m-%d")
+        else:
+            return json.JSONEncoder.default(self, obj)
+
+class AssetTableView(LoginRequiredMixin,View):
+    '''
+    limit 表示每页有多少条记录
+    offset 表示总共有多少条记录从数据库里获取的时候。
+    search 搜索的关键字。
+    sort_column 表示哪一列需要排序。
+    order 表示排序是升序还是降序。
+    '''
+    def get(self,request):
+        limit = request.GET.get('limit')
+        offset = request.GET.get('offset')
+        search_keywords = request.GET.get('search')
+        sort_column = request.GET.get('sort')
+        order = request.GET.get('order')
+        if search_keywords:
+            all_records = Hosts.objects.filter(Q(wip__icontains=search_keywords) | Q(hostname__icontains=search_keywords) | Q(
+                nip__icontains=search_keywords))
+        else:
+            all_records = Hosts.objects.all()
+        if sort_column:
+            if sort_column in ['id','wip','nip','sn','ctime']:
+                if order =='desc':
+                    sort_column = '-%s' %(sort_column)
+                all_records = Hosts.objects.all().order_by(sort_column)
+        all_records_count = all_records.count()
+        if not offset:
+            offset =0
+        if not limit:
+            limit = 20
+        p = P2(all_records,limit)
+        page = int(int(offset)/int(limit)) + 1
+        response_data = {'total':all_records_count,'rows':[]}
+        for asset in p.page(page):
+            response_data['rows'].append({
+                "id":asset.id,
+                "hostname":asset.hostname,
+                "wip":asset.wip,
+                "nip":asset.nip,
+                "server_type":asset.server_type,
+                "status":asset.status,
+                "cpu":asset.cpu_info if asset.cpu_info else '',
+                "os":asset.os if asset.os else '',
+                "memory":asset.memory if asset.memory else '',
+                "disk":asset.disk if asset.disk else '',
+                "ctime":asset.ctime
+            })
+        return  HttpResponse(json.dumps(response_data,cls=CJsonEncoder))
+
+class HostListView(LoginRequiredMixin,View):
+    def get(self,request):
+        return render(request,'host/hosts.html')
 
 class IdcListView(LoginRequiredMixin,ListView):
     model = IDC
@@ -309,3 +377,24 @@ class  WebSSH(LoginRequiredMixin,View):
             hostgroup = p.host_groups.all()
             host = p.bind_hosts.all()
         return render(request,'host/webssh.html',locals())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

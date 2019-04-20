@@ -10,26 +10,6 @@ git clone  https://github.com/cc0411/opadmin
 
 pip  install  -r  requirements.txt
 
-## 安装rabbitmq
-
-wget https://github.com/rabbitmq/erlang-rpm/releases/download/v20.1.7.1/erlang-20.1.7.1-1.el6.x86_64.rpm
-
-yum localinstall erlang-20.1.7.1-1.el6.x86_64.rpm
-
-wget https://dl.bintray.com/rabbitmq/all/rabbitmq-server/3.7.7/rabbitmq-server-3.7.7-1.el6.noarch.rpm
-
-yum localinstall rabbitmq-server-3.7.7-1.el6.noarch.rpm
-
-### 启动
-
-/etc/init.d/rabbitmq-server
-## 使用
-
-rabbitmqctl add_user opadmin  opadmin
-
-rabbitmqctl add_vhost myhost
-
-rabbitmqctl set_permissions -p myhost opadmin ".*" ".*" ".*"
 
 ## 配置celery后台启动
 

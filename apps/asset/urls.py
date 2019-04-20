@@ -4,7 +4,7 @@ from .views import HostListView,HostImportView,DownloadTplView,IdcListView,HostU
 from .views import HostUpdateView,IdcUpdateView,HostUserUpdateView,HostGroupUpdateView,UserHostPerAddView
 from .views import HostDelView,HostGroupDelView,IdcDelView,HostUserDelView,UserHostPerDelView
 from  .views import HostAddView,IdcAddView,HostGroupAddView,HostUserAddView,UserHostPerUpdateView
-from .views import WebSSH
+from .views import WebSSH,AssetTableView
 urlpatterns = [
     url(r'^host/list/$', HostListView.as_view(),name='host_list'),
     url(r'^hostper/list',UserHostPerListView.as_view(),name='user_host_list'),
@@ -29,4 +29,5 @@ urlpatterns = [
     url(r'^idc/delete/(?P<pk>\d+)/$',IdcDelView.as_view(),name='idc_delete'),
     url(r'^hostper/delete/(?P<pk>\d+)/$',UserHostPerDelView.as_view(),name='hostper_delete'),
     url(r'^webssh/$',WebSSH.as_view(),name='webssh'),
+    url(r'^assetjson/$',AssetTableView.as_view(),name='assetjson'),
     ]

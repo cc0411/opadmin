@@ -7,7 +7,7 @@ from django.conf import settings
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'opadmin.settings')
 
-app = Celery('opadmin',broker='amqp://opadmin:opadmin@127.0.0.1:5672/myhost')
+app = Celery('opadmin',broker='redis://127.0.0.1:6379/1')
 platforms.C_FORCE_ROOT = True
 
 app.conf.task_queues = (
