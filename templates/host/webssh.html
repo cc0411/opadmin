@@ -98,7 +98,24 @@
             </ul>
         </div>
         <div class="tab-content span4">
-            <div class="tab-pane active" id="help">帮助</div>
+            <div class="tab-pane active" id="help"><pre>
+                使用xshell配置说明:
+                1.修改最后一行为你自身的xshell.exe路径，比如C:\Xshell\Xshell.exe;
+                2.保存并导入xx.reg文件到注册表。
+                3.建议使用xshell4，Xftp选项卡名称自动和Xshell保持一致。
+--------------------------------------------------------------
+Windows Registry Editor Version 5.00
+[HKEY_CLASSES_ROOT\ssh]
+@="URL:CMDB Loader Protocol"
+"URL Protocol"=""
+[HKEY_CLASSES_ROOT\ssh\DefaultIcon]
+@=""
+[HKEY_CLASSES_ROOT\ssh\shell]
+@="open"
+[HKEY_CLASSES_ROOT\ssh\shell\open]
+[HKEY_CLASSES_ROOT\ssh\shell\open\command]
+@="\"C:\\Xshell\\Xshell.exe\" \"%1\""
+--------------------------------------------------------------</pre></div>
         </div>
 
     </div>

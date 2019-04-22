@@ -4,7 +4,7 @@
 {% block page %}服务器{% endblock %}
 {% block custom_css %}
     <link rel="stylesheet" href="/static/bootstrap-table/css/bootstrap-table.css">
-
+     <link href="/static/css/plugins/sweetalert/sweetalert.css" rel="stylesheet">
 
 {% endblock %}
 
@@ -26,6 +26,12 @@
                                 <a href="{% url 'host:import' %}" class="btn btn-sm btn-default">
                                         <i class="fa fa-cloud-upload" aria-hidden="true"></i>导入主机
                                     </a>
+                                <button type="button" id="batchUp" name="up" class="btn btn-outline btn-default">
+                                <i class="fa fa-level-up" aria-hidden="true"> 上线 </i>
+                                </button>
+                                 <button type="button" id="batchDown" name="down" class="btn btn-outline btn-default">
+                                   <i class="fa fa-level-down" aria-hidden="true"> 下线 </i>
+                                    </button>
                                 </div>
                         <table id="asset-list-table-events"
                                class="table  table-hover"
@@ -69,7 +75,7 @@
     <script src="/static/bootstrap-table/js/bootstrap-table.min.js"></script>
     <script src="/static/bootstrap-table/js/bootstrap-table-zh-CN.min.js"></script>
     <script src="/static/bootstrap-table/extensions/export/bootstrap-table-export.min.js"></script>
-
+    <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
     <script>
         var $table = $('#asset-list-table-events');
         function initTable() {
@@ -181,7 +187,9 @@
                 {% endif %}
                 {%  if request|has_permission:'webssh:sshconnect' %}
                 '<a class="btn btn-xs btn-default" href="/webssh/sshconnect/'+row['wip']+'/'+row['id']+'/"><i class="fa fa-linux"></i></a>',
+
                 {%  endif %}
+                '<button type="button" class="btn btn-xs btn-warning" onclick="connecttosshserver('+row['id']+')">putty</button>',
                 {%  if request|has_permission:'webssh:filemanage' %}
                 '<a class="btn btn-xs btn-default" href="/webssh/filemanage/'+row['wip']+'/'+row['id']+'/"><i class="fa fa-folder-open"></i></a>',
                 {%  endif %}
@@ -189,7 +197,118 @@
                 '<a class="btn btn-xs btn-danger" href="/host/host/delete/'+row['id']+'/"><i class="fa fa-trash"></i></a>'
                 {%  endif %}
                         ].join('')
-  }
+  };
+        $(function () {
+            $("#batchUp,#batchDown,#batchDelete").click(function () {
+            var name = $(this).prop('name');
+            console.log(name)
+            var selections = $table.bootstrapTable('getSelections');
+            if (selections.length <= 0) {
+                swal({
+                    title: "",
+                    text: "请选择要处理的主机！"
+                });
+                return false;
+            }
+            var ajaxFunc = function () {
+                var i = 0;
+                var ips = [];
+                var status = [];
+                if (name == 'delete') {
+                    $.each(selections, function () {
+                        ips[i] = selections[i]['ip'];
+                        status[i] = selections[i]['status'];
+                        i++;
+                    });
+                    if (status.indexOf(0) > -1) {
+                        swal({
+                            title: "",
+                            text: "线上主机禁止删除，请确认！"
+                        });
+                        return false;
+                    }
+                }
+                else if (name == 'up') {
+                    $.each(selections, function () {
+                        if (selections[i]['status'] != 0) {
+                            ips[i] = selections[i]['id'];
+                            status[i] = selections[i]['status'];
+                            i++;
+                        }
+                    });
+                } else if (name == 'down') {
+                    $.each(selections, function () {
+                        if (selections[i]['status'] == 0) {
+                            ips[i] = selections[i]['id'];
+                            status[i] = selections[i]['status'];
+                            i++;
+                        }
+                    });
+                }
+
+                var postInfo = {
+                    'ips': ips,
+                    'status': status,
+                    'deal': name
+                };
+                var postUrl = "{:url('Host/batchDeal')}";
+                var dealStr = {
+                    'up': '上线',
+                    'down': '下线',
+                    'delete': '删除'
+                };
+
+                $.ajax({
+                    type: "post",
+                    url: postUrl,
+                    data: {postInfo: postInfo},
+                    success: function (data, status) {
+                        if (data == 1) {
+                            swal({
+                                title: "",
+                                text: "所选主机" + dealStr[name] + "成功!",
+                                type: "success"
+                            });
+                            $('#hostTable').bootstrapTable('refresh');
+                            return true;
+                        } else {
+                            swal({
+                                title: "",
+                                text: data,
+                                type: "warning"
+                            });
+                            return false;
+                        }
+
+                    },
+                    error: function () {
+                        swal({
+                            title: "",
+                            text: name + "请求失败!",
+                            type: "warning"
+                        });
+                        return false;
+                    }
+                });
+            };
+            if (name == 'delete') {
+                swal({
+                    title: "您确定要删除吗",
+                    text: "删除后将无法恢复，请谨慎操作！",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    closeOnConfirm: false
+                }, function (isConfirm) {
+                    if (isConfirm) {
+                        ajaxFunc();
+                    }
+                });
+            } else {
+                ajaxFunc();
+            }
+        });
+        })
         $(function(){initTable()})
 
 
@@ -204,4 +323,31 @@
 
 
     </script>
+    <script>
+    $(function () {
+        $.ajaxSetup({headers: {"X-CSRFToken": '{{ csrf_token }}'}});
+    });
+        function connecttosshserver(serverid){
+        $.ajax({
+         type: "POST",
+         url: "{% url 'webssh:dynamicpassword' %}",
+         data: {"serverid":serverid},
+         dataType: "json",
+         success: function (data) {
+                if (data.status){
+                    var sshserver_address = window.location.hostname;
+                    var user_pass_dict = data.message;
+                    var sshserver_remote_port = 2100;
+                    var username = user_pass_dict.username;
+                    var temp_pass = user_pass_dict.password;
+                    var ssh_protocol_path = "ssh://"+sshserver_address+"#"+sshserver_remote_port+"#"+username+"#"+temp_pass;
+                    window.location.href = ssh_protocol_path
+                }
+         },
+         failure: function (errMsg) {
+             toastr["error"](errMsg);
+         }
+     });
+    }
+</script>
 {% endblock %}

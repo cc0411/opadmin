@@ -27,7 +27,7 @@ SECRET_KEY = 'u7uz2g-oyn-5b9v&9-#^o6)ar6ynm((&)!ji_evm(a_944j%r_'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 #LDAP config
 import ldap

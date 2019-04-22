@@ -33,9 +33,14 @@ python manage.py makemigrations
 
 python manage.py migrate
 
-python manage.py createsuperuser
+python create_superuser
+## 连接mysql
+>mysql -u root -p；
 
-最后执行db.sql里面的内容
+>source db.sql；
+
+## 运行
+python manage.py runserver 0.0.0.0:8000
 
 ## 测试使用celery  相关命令
 Celery -A opadmin  worker -l info

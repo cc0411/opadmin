@@ -2,6 +2,6 @@ from .models import  UserProfile
 
 
 user = UserProfile.objects.get(username='zhangsan')
-user.roles.add(1)
+user.roles.update(role__id=2)
 
 

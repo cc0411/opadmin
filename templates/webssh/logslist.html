@@ -38,14 +38,16 @@
                                     <td class="text-navy">
                                     {% if log.is_finished %}
                                         {%  if request|has_permission:'webssh:sshlogplay' %}
-                                    <button type="button" class="btn btn-xs btn-primary play" data-toggle="modal" data-target="#play" onclick="play('{{log.user.username}}','{{log.server.wip}}','{{log.start_time}}','{% url 'webssh:sshlogplay' log.id %}');">播放</button>
+                                            <button type="button" onclick="window.open('{% url 'webssh:sshlogplay' log.id %}','newwindow', 'height=500, width=1005, top=200, left=200, toolbar=no, menubar=no, scrollbars=no, location=no, status=no')"
+                                           class="btn btn-xs btn-primary">回放</button>
                                             {%  endif %}
                                     {% else %}
                                         {%  if request|has_permission:'webssh:sshterminalkill' %}
                                     <button type="button" class="btn btn-xs btn-danger" onclick="kill('{{log.channel}}','{{log.user.username}}')">停止</button>
                                     {%  endif %}
                                             {%  if request|has_permission:'webssh:sshterminalmonitor' %}
-                                    <button type="button" class="btn btn-xs btn-danger" onclick="monitor('{{log.user.username}}','{{log.server.wip}}','{{log.start_time}}','{% url 'webssh:sshterminalmonitor' log.id %}')">监控</button>
+                                                <button type="button" onclick="window.open('{% url 'webssh:sshterminalmonitor' log.id  %}','newwindow', 'height=500, width=1005, top=200, left=200, toolbar=no, menubar=no, scrollbars=no, location=no, status=no')"
+                                           class="btn btn-xs btn-warning">监控</button>
                                                 {%  endif %}
                                     {% endif %}
                                     {%  if request|has_permission:'webssh:commandlog_list' %}

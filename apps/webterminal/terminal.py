@@ -29,7 +29,6 @@ class ShellHandler(object):
             raise Exception('Authication must be key or password')
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        from opadmin.asgi import channel_layer
         if method == 'ssh-password':
             self.ssh.connect(ip, port=port, username=username,
                              password=credential, timeout=timeout)

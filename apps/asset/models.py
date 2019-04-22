@@ -49,7 +49,7 @@ class Hosts(models.Model):
     game_id = models.CharField(max_length=12,blank=True,null=True,verbose_name=u'GameID')
     host_vars = models.TextField(blank=True, null=True, verbose_name='主机变量')
     def __str__(self):
-        return self.hostname
+        return self.wip
 
     def gethostname(self):
         return slugify('{0} {1} {2} {3}'.format(self.nip, self.wip, self.hostname, ''.join(
