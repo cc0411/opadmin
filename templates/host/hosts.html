@@ -23,6 +23,9 @@
                                         <i class="glyphicon glyphicon-plus" aria-hidden="true"></i>添加主机
                                     </a>
                             {% endif %}
+                                <a href="{% url 'host:import' %}" class="btn btn-sm btn-default">
+                                        <i class="fa fa-cloud-upload" aria-hidden="true"></i>导入主机
+                                    </a>
                                 </div>
                         <table id="asset-list-table-events"
                                class="table  table-hover"
@@ -43,11 +46,12 @@
                                data-show-refresh="true"
                                data-show-columns="true"
                                data-show-export="true"
-                               data-page-size=20
+                               data-page-size=10
                                data-unique-id="id"
                                data-buttons-class="primary"
                                data-icons-prefix="glyphicon"
                                data-icons="icons"
+                               data-icon-size="sm"
                                data-icon-aria-hidden="true"
                             data-query-params="queryParams"
                             data-detail-view="true"
@@ -116,15 +120,23 @@
 
             },
             {field:'cpu',
-            title:'CPU'
+            title:'CPU',
+            visible:false
             },
             {field:'memory',
-            title:'内存'
+            title:'内存',
+            visible:false
             },
             {field:'disk',
-            title:'硬盘'},
+            title:'硬盘',
+            visible:false},
             {field:'os',
-            title:'操作系统'
+            title:'操作系统',
+            visible:false
+            },
+            {field:'remote_user',
+            title:'远程用户',
+            visible:false
             },
             {field:'ctime',
             title:'创建时间'},

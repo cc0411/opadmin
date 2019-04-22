@@ -106,6 +106,7 @@ class AssetTableView(LoginRequiredMixin,View):
                 "os":asset.os if asset.os else '',
                 "memory":asset.memory if asset.memory else '',
                 "disk":asset.disk if asset.disk else '',
+                'remote_user':asset.user.name if asset.user else '',
                 "ctime":asset.ctime
             })
         return  HttpResponse(json.dumps(response_data,cls=CJsonEncoder))
@@ -210,16 +211,31 @@ class  HostImportView(View):
             row_map = {
                 0:{'text':'主机名','name':'hostname'},
                 1:{'text':'外网地址','name':'wip'},
+                2: {'text': '内网地址', 'name': 'nip'},
+                3: {'text': '类型', 'name': 'server_type'},
+                4: {'text': '状态', 'name': 'status'},
+                5: {'text': '云主机ID', 'name': 'instance_id'},
+                6: {'text': 'CPU', 'name': 'cpu_info'},
+                7: {'text': '系统', 'name': 'os'},
+                8: {'text': '内存', 'name': 'memory'},
+                9: {'text': '硬盘', 'name': 'disk'},
+
             }
             object_list = []
             for row_num in range(1,sheet.nrows):
                 row = sheet.row(row_num)
                 row_dict = {}
                 for col_num,name_text in row_map.items():
-                    row_dict[name_text['name']] = row[col_num].value
+                    row_dict[name_text['name']] = row[col_num].value if row[col_num].value else ''
+                    if Hosts.objects.filter(Q(wip=row[col_num].value)|Q(nip=row[col_num].value)|Q(hostname=row[col_num].value)):
+                        context['status'] = False
+                        context['msg'] = '具有相同的IP或主机名的服务器已存在，请检查'
+                        return render(request, 'host/import.html', context)
                 object_list.append(Hosts(**row_dict))
+
             Hosts.objects.bulk_create(object_list,batch_size=20)
         except Exception as e:
+            print(e)
             context['status'] = False
             context['msg'] = '导入错误'
         return render(request,'host/import.html',context)

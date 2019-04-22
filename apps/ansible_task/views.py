@@ -1,5 +1,3 @@
-from django.shortcuts import render
-from datetime import datetime
 import os
 import json
 import zipfile

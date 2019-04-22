@@ -39,14 +39,14 @@ class Hosts(models.Model):
     sn = models.CharField(max_length=64,blank=True,null=True,verbose_name='SN编号')
     cpu_info = models.CharField(max_length=128,verbose_name='CPU',blank=True,null=True)
     os = models.CharField(max_length=64,blank=True,null=True,verbose_name='系统')
-    memory = models.SmallIntegerField(verbose_name=u'内存/G',blank=True,null=True)
-    disk = models.IntegerField(verbose_name=u'硬盘/G',blank=True,null=True)
+    memory = models.CharField(max_length=12,verbose_name=u'内存/G',blank=True,null=True)
+    disk = models.CharField(max_length=12,verbose_name=u'硬盘/G',blank=True,null=True)
     user = models.ForeignKey('HostUsers', verbose_name=u'系统用户',blank=True,null=True)
     ctime = models.DateTimeField(default=datetime.now,verbose_name=u'创建时间')
     utime = models.DateTimeField(auto_now=True,verbose_name=u'更新时间')
     desc = models.CharField(max_length=200,verbose_name=u'描述',blank=True,null=True)
-    server_id = models.IntegerField(blank=True,null=True,verbose_name=u'ServerID')
-    game_id = models.IntegerField(blank=True,null=True,verbose_name=u'GameID')
+    server_id = models.CharField(max_length=12,blank=True,null=True,verbose_name=u'ServerID')
+    game_id = models.CharField(max_length=12,blank=True,null=True,verbose_name=u'GameID')
     host_vars = models.TextField(blank=True, null=True, verbose_name='主机变量')
     def __str__(self):
         return self.hostname

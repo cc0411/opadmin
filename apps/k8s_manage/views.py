@@ -1,11 +1,5 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import render,render_to_response
 from django.contrib.auth.decorators import login_required
-
-# Create your views here.
-
 import json
 from django.http import HttpResponse
 from .k8s_api import K8sApi

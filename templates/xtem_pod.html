@@ -1,9 +1,6 @@
-<!doctype html>
-<html class="no-js">
-<head>
-    <meta charset="utf-8">
-    <title>{{ namespace }} - {{ pod_name }}</title>
-    <meta name="viewport" content="width=device-width">
+{%  extends 'layout.html' %}
+{% block title %}{{ namespace }} - {{ pod_name }}{% endblock %}
+{%  block custom_css %}
     <style>
         * {
             box-sizing: border-box;
@@ -37,26 +34,16 @@
 
         }
     </style>
-    <link rel="stylesheet" href="/static/customs/css/patternfly.css">
-    <link rel="stylesheet" href="/static/customs/css/xterm.css">
-    <link rel="stylesheet" href="/static/customs/css/container-terminal.css">
-    <link rel="stylesheet" href="/static/xadmin/vendor/bootstrap/css/bootstrap.min.css">
-   <script src="/static/vendor/jquery-1.8.3.min.js"></script>
-   <script src="/static/xadmin/vendor/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/static/customs/js/angular.js"></script>
-    <script src="/static/customs/js/xterm.js"></script>
-    <script src="/static/customs/js/container-terminal.js"></script>
-</head>
-<body>
-<div style="text-align:left">
-    <span class="alert-info" >命名空间
-    : {{ namespace }} 连接容器名: {{ pod_name }}</span>
-</div>
-<div ng-app="exampleApp" class="">
-    <kubernetes-container-terminal pod="selfLink" container="containerName" screen-keys="true"
-     autofocus="true" title="远程终端 {{ pod_name }} 命名空间为: {{ namespace }}" cols="110" rows="24" >
-    </kubernetes-container-terminal>
-<script type="text/javascript">
+    <link rel="stylesheet" href="/static/kubernetes-container/css/patternfly.css">
+    <link rel="stylesheet" href="/static/kubernetes-container/css/patternfly-additions.css">
+    <link rel="stylesheet" href="/static/kubernetes-container/css/xterm.css">
+    <link rel="stylesheet" href="/static/kubernetes-container/css/container-terminal.css">
+{% endblock %}
+{% block custom_js %}
+    <script src="/static/kubernetes-container/js/angular.js"></script>
+    <script src="/static/kubernetes-container/js/xterm.js"></script>
+    <script src="/static/kubernetes-container/js/container-terminal.js"></script>
+    <script type="text/javascript">
     angular.module('exampleApp', ['kubernetesUI'])
         .config(function (kubernetesContainerSocketProvider) {
             kubernetesContainerSocketProvider.WebSocketFactory = "CustomWebSockets";
@@ -79,7 +66,13 @@
             };
         });
 </script>
+{% endblock %}
+{% block content %}
+<div ng-app="exampleApp">
+    <kubernetes-container-terminal pod="selfLink" container="containerName" screen-keys="true"
+     autofocus="true" title="远程终端 {{ pod_name }} 命名空间为: {{ namespace }}" cols="110" rows="24" >
+    </kubernetes-container-terminal>
+
 
 </div>
-</body>
-</html>
+{% endblock %}

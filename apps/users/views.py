@@ -21,6 +21,7 @@ from django.core.urlresolvers import reverse_lazy
 from users.service.urls import  memory_reverse
 from users.service.routes import get_all_url_dict
 from pure_pagination import PageNotAnInteger,EmptyPage,Paginator
+from asset.models import Hosts
 User = get_user_model()
 import json
 import requests
@@ -106,7 +107,19 @@ class Dashboard(LoginRequiredMixin,View):
     login_url = '/login/'
     redirect_field_name = 'next'
     def get(self,request):
-        return  render(request,'index.html',{})
+        asset_count = Hosts.objects.count()
+        instance_count = Hosts.objects.filter(server_type='instance').count()
+        physical_count = Hosts.objects.filter(server_type ='physical').count()
+        virtual_count = Hosts.objects.filter(server_type='virtual').count()
+        online_count = Hosts.objects.filter(status='online').count()
+        offline_count = Hosts.objects.filter(status='offline').count()
+        user_count = User.objects.count()
+        permission_dict = request.session.get(settings.PERMISSION_SESSION_KEY)
+        permission_list =[]
+        for k, v in  permission_dict.items():
+            permission_list.append(v['title'])
+
+        return  render(request,'index.html',locals())
 
 class UserRegisterView(LoginRequiredMixin,FormView):
     '''新增用户'''

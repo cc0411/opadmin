@@ -1,7 +1,8 @@
-{%  include 'layout.html' %}
-
+{%  extends 'layout.html' %}
+{% load rbac %}
 {% block custom_js %}
- <script>
+    <script src="/static/echarts/echarts.min.js"></script>
+    <script>
         $(document).ready(function() {
             setTimeout(function() {
                 toastr.options = {
@@ -12,7 +13,161 @@
                 };
                 toastr.success('欢迎  {{ request.user.name }} 使用 OPADMIN运维管理平台');
 
-            }, 1300);})
+            }, 1300);});
+        var AssetType = echarts.init(document.getElementById('asset-type'), 'dark');
+        AssetType.setOption({
+    tooltip : {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+    },
+    legend: {
+        orient: 'vertical',
+        left: 'left',
+        data: ['虚拟机','物理机','云主机']
+    },
+    series : [
+        {
+            name: '主机类型',
+            type: 'pie',
+            radius: ['50%', '70%'],
+            avoidLabelOverlap: false,
+            label: {
+                normal: {
+                    show: false,
+                    position: 'center'
+                },
+                emphasis: {
+                    show: true,
+                    textStyle: {
+                        fontSize: '30',
+                        fontWeight: 'bold'
+                    }
+                }
+            },
+            labelLine: {
+                normal: {
+                    show: false
+                }
+            },
+            data:[
+                {value:{{ instance_count }}, name:'云主机'},
+                {value:{{ physical_count }}, name:'物理机'},
+                {value:{{ virtual_count }}, name:'虚拟机'}
+            ],
+        }
+    ]
+});
+        var AssetStatus = echarts.init(document.getElementById('asset-status'), 'dark');
+        AssetStatus.setOption({
+    tooltip : {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+    },
+    legend: {
+        orient: 'vertical',
+        left: 'left',
+        data: ['上线','下线']
+    },
+    series : [
+        {
+            name: '主机状态',
+            type: 'pie',
+            radius: ['50%', '70%'],
+            avoidLabelOverlap: false,
+            label: {
+                normal: {
+                    show: false,
+                    position: 'center'
+                },
+                emphasis: {
+                    show: true,
+                    textStyle: {
+                        fontSize: '30',
+                        fontWeight: 'bold'
+                    }
+                }
+            },
+            labelLine: {
+                normal: {
+                    show: false
+                }
+            },
+            data:[
+                {value:{{ online_count }}, name:'上线'},
+                {value:{{ offline_count }}, name:'下线'},
+            ],
+        }
+    ]
+});
+    window.onresize = function(){
+    AssetType.resize();
+    AssetStatus.resize()}
     </script>
 
 {%  endblock %}
+
+ {% block content %}
+     {% if request|has_permission:'host:host_list' %}
+       <div class="row">
+        <div class="col-lg-3">
+                <div class="widget style1 lazur-bg">
+                    <div class="row">
+                        <div class="col-4">
+                            <i class="fa fa-server fa-5x"></i>
+                        </div>
+                        <div class="col-8 text-right">
+                            <span>主机数</span>
+                            <h2 class="font-bold">{{ asset_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+       <div class="col-lg-3">
+                <div class="widget style1 lazur-bg">
+                    <div class="row">
+                        <div class="col-4">
+                            <i class="fa fa-users fa-5x"></i>
+                        </div>
+                        <div class="col-8 text-right">
+                            <span>用户数</span>
+                            <h2 class="font-bold">{{ user_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+       </div>
+       <div class="row">
+            <div class="col-sm-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>主机类型</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="flot-chart">
+                            <div style="width:100%;height:100%"  id="asset-type"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>主机状态</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="flot-chart">
+                            <div style="width:100%;height:100%"  id="asset-status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+     {% else %}
+         xxxxxxx
+     {% endif %}
+     {{ permission_list }}
+
+
+
+
+ {% endblock %}

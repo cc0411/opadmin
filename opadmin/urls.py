@@ -82,6 +82,7 @@ urlpatterns = [
     url(r'^wiki/',include('wiki.urls',namespace='wiki')),
     url(r'^task/',include('ansible_task.urls',namespace='ansible_task')),
     url(r'^db/',include('db_operation.urls',namespace='db')),
+    url(r'^pro/',include('probuild.urls',namespace='pro')),
 ]
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 if DEBUG:

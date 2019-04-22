@@ -30,3 +30,5 @@ pymysql==0.9.3
 django-auth-ldap==1.7.0
 django-redis==4.10.0
 kubernetes==9.0.0
+gitpython
+svn

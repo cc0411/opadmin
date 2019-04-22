@@ -8,7 +8,6 @@ from celery.utils.log import get_task_logger
 logger = get_task_logger(__name__)
 
 @celery_app.task
-#@shared_task
 def module_record(ans_user, ans_remote_ip, ans_module, ans_args, ans_server, ans_result):
     try:
         AnsibleOperLog.objects.create(
@@ -24,7 +23,6 @@ def module_record(ans_user, ans_remote_ip, ans_module, ans_args, ans_server, ans
 
 
 @celery_app.task
-#@shared_task
 def playbook_record(playbook_user, playbook_remote_ip, playbook_name, playbook_result):
     try:
         PlayBookLogs.objects.create(

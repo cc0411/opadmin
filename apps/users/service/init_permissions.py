@@ -11,7 +11,8 @@ def initial_session(user,request):
                                                                               'permissions__pid__url',
                                                                               'permissions__menu_id',
                                                                               'permissions__menu__title',
-                                                                              'permissions__menu__icon').distinct()
+                                                                             'permissions__menu__icon').distinct()
+    print(permission_list)
     #存放权限信息(二级菜单)
     permission_dict ={}
     #存放菜单信息
@@ -46,8 +47,8 @@ def initial_session(user,request):
                 ]
             }
 
-    print('权限列表', permission_dict)
-    print('菜单权限', menu_dict)
+    #print('权限列表', permission_dict)
+    #print('菜单权限', menu_dict)
     # 将当前登录人的权限列表注入session中
     request.session[settings.PERMISSION_SESSION_KEY] = permission_dict
     # 将当前登录人的菜单权限字典注入session中

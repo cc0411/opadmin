@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'pure_pagination',
     'DjangoUeditor',
     'wiki',
+    'probuild',
     'ansible_task',
     'db_operation',
     'django_celery_results',
